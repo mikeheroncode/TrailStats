@@ -6,10 +6,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { HomeScreen } from './src/components/HomeScreen';
 import { GeneralLog } from './src/components/GeneralLog';
+import { EditItems } from './src/components/EditItems';
 
 import SQLite from 'react-native-sqlite-storage';
+import { RootStackParamList } from './src/types/RootStackParamList';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
   useEffect(() => {
@@ -29,7 +31,8 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="GeneralLog" component={GeneralLog} />
+        <Stack.Screen name="EditItems" component={EditItems} />
+        <Stack.Screen name="Log" component={GeneralLog} />
       </Stack.Navigator>
     </NavigationContainer>
   );
