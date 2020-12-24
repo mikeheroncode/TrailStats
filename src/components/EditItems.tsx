@@ -1,9 +1,9 @@
 import React from 'react';
-import { Alert, Pressable, TextInput } from 'react-native';
-import { View, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { FoodItem } from '../types/FoodItem';
 import { Meal } from '../types/Meal';
 import { Colors } from './Colors';
+import { EditFoodItem } from './EditFoodItem';
 
 interface IProps {
   buttonText: string[];
@@ -28,31 +28,7 @@ export class EditItems extends React.Component<IProps, IState> {
   handleVariableSelectChange = (e: any) => {};
 
   render() {
-    return (
-      <View style={this.styles.editItemScreen}>
-        <View style={this.styles.editItemForm}>
-          <Text style={this.styles.editItemLabels}>Name</Text>
-          <TextInput style={this.styles.editItemFormTextInput} />
-          <Text style={this.styles.editItemLabels}>Calories</Text>
-          <TextInput style={this.styles.editItemFormTextInput} />
-          <Text style={this.styles.editItemLabels}>Fat</Text>
-          <TextInput style={this.styles.editItemFormTextInput} />
-          <Text style={this.styles.editItemLabels}>Protien</Text>
-          <TextInput style={this.styles.editItemFormTextInput} />
-          <Text style={this.styles.editItemLabels}>Carbs</Text>
-          <TextInput style={this.styles.editItemFormTextInput} />
-          <Text style={this.styles.editItemLabels}>Sugar</Text>
-          <TextInput style={this.styles.editItemFormTextInput} />
-          <Text style={this.styles.editItemLabels}>Fiber</Text>
-          <TextInput style={this.styles.editItemFormTextInput} />
-          <Pressable
-            onPress={() => Alert.alert('Item Added')}
-            style={this.styles.addItemButton}>
-            <Text style={this.styles.homeButtonText}>{'Add Item'}</Text>
-          </Pressable>
-        </View>
-      </View>
-    );
+    return <EditFoodItem createNewItem={true} foodItem={null} />;
   }
   styles = StyleSheet.create({
     editItemScreen: {
