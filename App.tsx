@@ -3,7 +3,8 @@ import React, { useEffect } from 'react';
 
 import { NavigationContainer } from '@react-navigation/native';
 
-import { createStackNavigator } from '@react-navigation/stack';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+
 import { HomeScreen } from './src/components/HomeScreen';
 import { GeneralLog } from './src/components/GeneralLog';
 import { EditItems } from './src/components/EditItems';
@@ -11,7 +12,7 @@ import { EditItems } from './src/components/EditItems';
 import SQLite from 'react-native-sqlite-storage';
 import { RootStackParamList } from './src/types/RootStackParamList';
 
-const Stack = createStackNavigator<RootStackParamList>();
+const Tab = createMaterialTopTabNavigator<RootStackParamList>();
 
 const App = () => {
   useEffect(() => {
@@ -29,11 +30,11 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="EditItems" component={EditItems} />
-        <Stack.Screen name="Log" component={GeneralLog} />
-      </Stack.Navigator>
+      <Tab.Navigator initialRouteName="Home">
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="EditItems" component={EditItems} />
+        <Tab.Screen name="Log" component={GeneralLog} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 };
