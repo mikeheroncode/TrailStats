@@ -5,9 +5,10 @@ interface IProps {
 }
 
 export const GeneralLog = (props: IProps) => {
+  let logItems = [];
   return (
     <View>
-      {props.logItems.map((logItem) => {
+      {logItems.map((logItem) => {
         return (
           <View
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
