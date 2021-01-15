@@ -8,57 +8,72 @@ import {
   Alert,
 } from 'react-native';
 
-type Props = {
-  createNewItem: boolean;
-  foodItem: FoodItem | null;
-};
-
 import { Colors } from './Colors';
 import { FoodItem } from '../types/FoodItem';
+import { EditItemTabParamList } from '../types/EditItemTabParamList';
+import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
+import { RouteProp } from '@react-navigation/native';
 
-export const EditFoodItem = (props: Props) => {
+type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'EditFoodItem'>;
+
+type FoodItemListNavigationProp = MaterialTopTabNavigationProp<
+  EditItemTabParamList,
+  'EditFoodItem'
+>;
+
+type Props = {
+  route: FoodItemListRouteProp;
+  navigation: FoodItemListNavigationProp;
+};
+
+export const EditFoodItem = ({ route, navigation }: Props) => {
+  const { foodItem, createNewItem } = route.params ?? {
+    foodItem: null,
+    createNewItem: true,
+  };
+
   return (
     <View style={styles.editItemScreen}>
       <View style={styles.editItemForm}>
         <Text style={styles.editItemLabels}>Name</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={props.createNewItem ? '' : String(props.foodItem?.name ?? '')}
+          value={createNewItem ? '' : String(foodItem?.name ?? '')}
         />
         <Text style={styles.editItemLabels}>Calories</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={props.createNewItem ? '' : String(props.foodItem?.name ?? '')}
+          value={createNewItem ? '' : String(foodItem?.calories ?? '')}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Fat</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={props.createNewItem ? '' : String(props.foodItem?.name ?? '')}
+          value={createNewItem ? '' : String(foodItem?.fat ?? '')}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Protien</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={props.createNewItem ? '' : String(props.foodItem?.name ?? '')}
+          value={createNewItem ? '' : String(foodItem?.protien ?? '')}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Carbs</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={props.createNewItem ? '' : String(props.foodItem?.name ?? '')}
+          value={createNewItem ? '' : String(foodItem?.carbs ?? '')}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Sugar</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={props.createNewItem ? '' : String(props.foodItem?.name ?? '')}
+          value={createNewItem ? '' : String(foodItem?.sugar ?? '')}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Fiber</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={props.createNewItem ? '' : String(props.foodItem?.name ?? '')}
+          value={createNewItem ? '' : String(foodItem?.fiber ?? '')}
           keyboardType={'numeric'}
         />
         <Pressable

@@ -2,7 +2,7 @@ import { FoodItem } from './FoodItem';
 
 export type EditItemTabParamList = {
   FoodItems: { foodItems: FoodItem[]; itemSelected: boolean };
-  EditFoodItem: undefined;
+  EditFoodItem: { foodItem: FoodItem; createNewItem: boolean } | undefined;
 };
 
 /*export type EditItemTabParamList = {

@@ -5,11 +5,11 @@ import { Colors } from './Colors';
 import { EditFoodItem } from './EditFoodItem';
 import { RouteProp } from '@react-navigation/native';
 import { EditItemTabParamList } from '../types/EditItemTabParamList';
-import { MaterialTopTabScreenProps } from '@react-navigation/material-top-tabs';
+import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
 
 type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'FoodItems'>;
 
-type FoodItemListNavigationProp = MaterialTopTabScreenProps<
+type FoodItemListNavigationProp = MaterialTopTabNavigationProp<
   EditItemTabParamList,
   'FoodItems'
 >;
@@ -23,10 +23,18 @@ export const FoodItemList = ({ route, navigation }: Props) => {
   const { foodItems, itemSelected } = route.params;
   return (
     <>
-      <View>
+      <View style={styles.editItemScreen}>
         {foodItems.map((foodItem, i) => {
           return (
-            <Pressable key={i} onPress={() => {}} style={styles.addItemButton}>
+            <Pressable
+              key={i}
+              onPress={() =>
+                navigation.navigate('EditFoodItem', {
+                  foodItem: foodItem,
+                  createNewItem: false,
+                })
+              }
+              style={styles.addItemButton}>
               <Text
                 style={
                   itemSelected ? styles.homeButtonText : styles.homeButtonText
@@ -37,7 +45,6 @@ export const FoodItemList = ({ route, navigation }: Props) => {
           );
         })}
       </View>
-      <EditFoodItem createNewItem={true} foodItem={null} />
     </>
   );
 };
