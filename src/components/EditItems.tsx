@@ -1,34 +1,65 @@
+import {
+  createMaterialTopTabNavigator,
+  MaterialTopTabScreenProps,
+} from '@react-navigation/material-top-tabs';
+import { RouteProp } from '@react-navigation/native';
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { EditItemTabParamList } from '../types/EditItemTabParamList';
 import { FoodItem } from '../types/FoodItem';
 import { Meal } from '../types/Meal';
 import { Colors } from './Colors';
 import { EditFoodItem } from './EditFoodItem';
+import { FoodItemList } from './FoodItemList';
 
-interface IProps {
-  buttonText: string[];
-}
+const EditItemsTab = createMaterialTopTabNavigator<EditItemTabParamList>();
+
+type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'FoodItems'>;
+
+type FoodItemListNavigationProp = MaterialTopTabScreenProps<
+  EditItemTabParamList,
+  'FoodItems'
+>;
+
+type Props = {
+  route: FoodItemListRouteProp;
+  navigation: FoodItemListNavigationProp;
+};
 
 interface IState {
   meals: Meal[];
   foodItems: FoodItem[];
+  itemSelected: boolean;
 }
 
-export class EditItems extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
+export class EditItems extends React.Component<Props, IState> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       meals: [],
       foodItems: [],
+      itemSelected: false,
     };
   }
 
-  handleTagDisplayToggle = (e: any) => {};
+  handleTagDisplayToggle = () => {};
 
-  handleVariableSelectChange = (e: any) => {};
+  handleVariableSelectChange = () => {};
 
   render() {
-    return <EditFoodItem createNewItem={true} foodItem={null} />;
+    return (
+      <EditItemsTab.Navigator initialRouteName="FoodItems">
+        <EditItemsTab.Screen
+          name="FoodItems"
+          component={FoodItemList}
+          initialParams={{
+            foodItems: this.state.foodItems,
+            itemSelected: this.state.itemSelected,
+          }}
+        />
+        <EditItemsTab.Screen name="EditFoodItem" component={EditFoodItem} />
+      </EditItemsTab.Navigator>
+    );
   }
   styles = StyleSheet.create({
     editItemScreen: {

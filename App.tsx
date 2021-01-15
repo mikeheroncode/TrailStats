@@ -30,7 +30,10 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator initialRouteName="Home">
+      <Tab.Navigator
+        initialRouteName="Home"
+        swipeEnabled={true}
+        tabBarOptions={{ style: { display: 'none' } }}>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="EditItems" component={EditItems} />
         <Tab.Screen name="Log" component={GeneralLog} />
