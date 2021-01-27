@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-
+import { useDatabase } from '../context/DatabaseContext';
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -19,7 +19,7 @@ export const HomeScreen = (props: Props) => {
   const buttonTexts = [
     { text: 'Home Screen', route: 'Home' },
     { text: 'View General Log', route: 'Log' },
-    { text: 'Add New Item', route: 'EditItems' },
+    { text: 'Add New Item', route: 'EditItem' },
   ];
   return (
     <View style={styles.homeScreen}>
@@ -27,7 +27,11 @@ export const HomeScreen = (props: Props) => {
         return (
           <Pressable
             key={i}
-            onPress={() => props.navigation.navigate('EditItems')}
+            onPress={() =>
+              buttonText.route === 'Log'
+                ? props.navigation.navigate('Log')
+                : props.navigation.navigate('EditItem')
+            }
             style={styles.homeButton}>
             <Text style={styles.homeButtonText}>{buttonText.text}</Text>
           </Pressable>

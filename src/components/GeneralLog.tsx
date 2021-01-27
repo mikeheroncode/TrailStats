@@ -1,21 +1,27 @@
 import React from 'react';
-import { Text, View } from 'react-native';
-interface IProps {
-  logItems: string[];
-}
+import { StyleSheet, Text, View } from 'react-native';
 
-export const GeneralLog = (props: IProps) => {
-  let logItems = [];
+import { Colors } from './Colors';
+import { FoodItem } from '../types/FoodItem';
+
+export const GeneralLog = (props: Props) => {
   return (
-    <View>
-      {logItems.map((logItem) => {
-        return (
-          <View
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text>{logItem}</Text>
-          </View>
-        );
-      })}
+    <View style={styles.homeScreen}>
+      <Text style={styles.homeButtonText}>{'HI'}</Text>
+      <Text style={styles.homeButtonText}>{'YEP'}</Text>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  homeScreen: {
+    backgroundColor: Colors.green,
+    flex: 1,
+    alignItems: 'center',
+  },
+  buttonTextContainer: {},
+  homeButtonText: {
+    color: Colors.white,
+    fontSize: 20,
+  },
+});
