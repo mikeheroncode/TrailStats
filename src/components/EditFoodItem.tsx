@@ -55,7 +55,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Protien</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.protien ?? '')}
+          value={createNewItem ? '' : String(foodItem?.protein ?? '')}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Carbs</Text>

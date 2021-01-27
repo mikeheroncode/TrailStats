@@ -1,7 +1,7 @@
 import { FoodItem } from './FoodItem';
 
 export type EditItemTabParamList = {
-  FoodItems: { foodItems: FoodItem[]; itemSelected: boolean };
+  FoodItems: { foodItems: FoodItem[]; selectedFoodItem: FoodItem | undefined };
   EditFoodItem: { foodItem: FoodItem; createNewItem: boolean } | undefined;
 };
 
