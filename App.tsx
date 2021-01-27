@@ -7,7 +7,8 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 
 import { HomeScreen } from './src/components/HomeScreen';
 import { GeneralLog } from './src/components/GeneralLog';
-import { EditItems } from './src/components/EditItems';
+import { EditItem } from './src/components/EditItem';
+import { DatabaseProvider } from './src/context/DatabaseContext';
 
 import SQLite from 'react-native-sqlite-storage';
 import { RootStackParamList } from './src/types/RootStackParamList';
@@ -15,29 +16,18 @@ import { RootStackParamList } from './src/types/RootStackParamList';
 const Tab = createMaterialTopTabNavigator<RootStackParamList>();
 
 const App = () => {
-  useEffect(() => {
-    SQLite.DEBUG(true);
-    SQLite.enablePromise(true);
-
-    SQLite.openDatabase({
-      name: 'TestDatabase',
-      location: 'default',
-    }).then((db) => {
-      console.log('Database open!');
-      console.log(db);
-    });
-  }, []);
-
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        initialRouteName="Home"
-        swipeEnabled={true}
-        tabBarOptions={{ style: { display: 'none' } }}>
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="EditItems" component={EditItems} />
-        <Tab.Screen name="Log" component={GeneralLog} />
-      </Tab.Navigator>
+      <DatabaseProvider>
+        <Tab.Navigator
+          initialRouteName="Home"
+          swipeEnabled={true}
+          tabBarOptions={{ style: { display: 'none' } }}>
+          <Tab.Screen name="Home" component={HomeScreen} />
+          <Tab.Screen name="EditItem" component={EditItem} />
+          <Tab.Screen name="Log" component={GeneralLog} />
+        </Tab.Navigator>
+      </DatabaseProvider>
     </NavigationContainer>
   );
 };
