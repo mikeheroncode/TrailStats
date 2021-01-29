@@ -1,20 +1,23 @@
+import { useState, useEffect } from 'react';
 import { FoodItem } from '../types/FoodItem';
 import { useDatabase } from '../context/DatabaseContext';
+import { FoodEvent } from '../types/FoodEvent';
 
-export function useFoodEvent() {
+// Hook for managing and accessing fooditems (CRUD)
+export function useEventLog() {
+  const [foodEvents, setFoodEvents] = useState<FoodEvent[]>([]);
   const database = useDatabase();
 
-  async function logFoodEvent(foodItem: FoodItem): Promise<void> {
-    const eventId = await database.logEvent('Ate Food');
-    console.log('HERE WE ARE LOGGING A FOOD EVENT');
-    return database.logFoodEvent(
-      eventId,
-      foodItem.food_id,
-      `Ate ${foodItem.name}`,
-    );
-  }
+  useEffect(() => {
+    refreshListOfEvents();
+  }, []);
 
+  function refreshListOfEvents() {
+    return database.getFoodEvents().then(setFoodEvents);
+  }
   return {
-    logFoodEvent,
+    foodEvents,
+    setFoodEvents,
+    refreshListOfEvents,
   };
 }

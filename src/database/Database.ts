@@ -4,6 +4,7 @@ import { Meal } from '../types/Meal';
 import { FoodItem } from '../types/FoodItem';
 import { AppState, AppStateStatus } from 'react-native';
 import { EventLog } from '../types/EventLog';
+import { FoodEvent } from '../types/FoodEvent';
 
 export interface Database {
   // Create
@@ -17,6 +18,7 @@ export interface Database {
     eventName: string,
   ): Promise<void>;
   getAllEvents(): Promise<EventLog>;
+  getFoodEvents(): Promise<FoodEvent[]>;
   // Read
   getAllMeals(): Promise<Meal[]>;
   getAllFoodItems(): Promise<FoodItem[]>;
@@ -75,47 +77,34 @@ async function logFoodEvent(
     });
 }
 
-async function getAllEvents(): Promise<EventLog> {
+async function getFoodEvents(): Promise<FoodEvent[]> {
   console.log('[db] Fetching foodItems from the db...');
   return getDatabase()
     .then((db) =>
-      db.executeSql('SELECT * FROM EventLog INNER JOIN FoodEvent ON EventLog.event_id = FoodEvent.foodEvent_id   ORDER BY food_id DESC;'),
+      db.executeSql(
+        'SELECT * FROM EventLog INNER JOIN FoodEvent ON EventLog.event_id = FoodEvent.event_id ORDER BY event_id ASC, timestamp DESC;',
+      ),
     )
     .then(([results]) => {
       if (results === undefined) {
         return [];
       }
       const count = results.rows.length;
-      const items: FoodItem[] = [];
+      const events: FoodEvent[] = [];
       for (let i = 0; i < count; i++) {
         const row = results.rows.item(i);
-        const {
-          name,
-          food_id,
-          calories,
-          fat,
-          protein,
-          carbs,
-          sugar,
-          fiber,
-          addedAt,
-        } = row;
+        const { foodEvent_id, event_id, food_id, name, timestamp } = row;
         console.log(`[db] FoodItem: ${name}, id: ${food_id}`);
-        items.push({
-          name,
+        events.push({
+          foodEvent_id,
+          event_id,
           food_id,
-          calories,
-          fat,
-          protein,
-          carbs,
-          sugar,
-          fiber,
-          addedAt,
+          name,
+          timestamp,
         });
       }
-      return items;
+      return events;
     });
-}
 }
 
 async function getAllFoodItems(): Promise<FoodItem[]> {
@@ -340,4 +329,5 @@ export const sqliteDatabase: Database = {
   deleteMeal,
   logEvent,
   logFoodEvent,
+  getFoodEvents,
 };
