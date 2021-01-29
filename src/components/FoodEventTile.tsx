@@ -4,35 +4,23 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Colors } from './Colors';
 import { FoodItem } from '../types/FoodItem';
 import { useEventLog } from '../hooks/useEventLog';
-import { FoodEventTile } from './FoodEventTile';
+import { FoodEvent } from '../types/FoodEvent';
 
-export const GeneralLog = (props: Props) => {
-  const {
-    foodEvents,
-    setFoodEvents,
-    refreshListOfEvents,
-    deleteFoodEvent,
-  } = useEventLog();
+interface Props {
+  foodEvent: FoodEvent;
+  isSelected: boolean;
+}
+
+export const FoodEventTile = (props: Props) => {
+  const { foodEvent, isSelected } = props;
   return (
-    <View style={styles.container}>
-      <Pressable
-        onPress={() => refreshListOfEvents}
-        style={styles.addItemButton}>
-        <Text>Refresh</Text>
-      </Pressable>
-      <FlatList
-        data={foodEvents}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => {}}
-            onLongPress={() => {
-              deleteFoodEvent(item);
-            }}
-            style={styles.addItemButton}>
-            <FoodEventTile foodEvent={item} isSelected={false} />
-          </Pressable>
-        )}
-      />
+    <View style={styles.foodEvent}>
+      <View style={styles.foodEventTextContainer}>
+        <Text style={styles.eventText}>{foodEvent.name}</Text>
+      </View>
+      <View style={styles.addItemButton}>
+        <Text style={styles.eventText}>{foodEvent.timestamp}</Text>
+      </View>
     </View>
   );
 };

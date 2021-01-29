@@ -15,9 +15,14 @@ export function useEventLog() {
   function refreshListOfEvents() {
     return database.getFoodEvents().then(setFoodEvents);
   }
+
+  function deleteFoodEvent(event: FoodEvent): Promise<void> {
+    return database.deleteFoodEvent(event).then(refreshListOfEvents);
+  }
   return {
     foodEvents,
     setFoodEvents,
     refreshListOfEvents,
+    deleteFoodEvent,
   };
 }

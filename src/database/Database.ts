@@ -17,7 +17,8 @@ export interface Database {
     food_id: number,
     eventName: string,
   ): Promise<void>;
-  getAllEvents(): Promise<EventLog>;
+  deleteFoodEvent(event: FoodEvent): Promise<void>;
+  //getAllEvents(): Promise<EventLog>;
   getFoodEvents(): Promise<FoodEvent[]>;
   // Read
   getAllMeals(): Promise<Meal[]>;
@@ -104,6 +105,28 @@ async function getFoodEvents(): Promise<FoodEvent[]> {
         });
       }
       return events;
+    });
+}
+
+async function deleteFoodEvent(foodEvent: FoodEvent): Promise<void> {
+  console.log(
+    `[db] Deleting foodEvent: "${foodEvent.name}" with id: ${foodEvent.foodEvent_id}`,
+  );
+  return getDatabase()
+    .then((db) => {
+      return db
+        .executeSql('DELETE FROM FoodEvent WHERE foodEvent_id = ?;', [
+          foodEvent.foodEvent_id,
+        ])
+        .then(() => db);
+    })
+    .then((db) =>
+      db.executeSql('DELETE FROM FoodEvent WHERE foodEvent_id = ?;', [
+        foodEvent.foodEvent_id,
+      ]),
+    )
+    .then(() => {
+      console.log(`[db] Deleted foodEvent: "${foodEvent.name}"!`);
     });
 }
 
@@ -330,4 +353,5 @@ export const sqliteDatabase: Database = {
   logEvent,
   logFoodEvent,
   getFoodEvents,
+  deleteFoodEvent,
 };
