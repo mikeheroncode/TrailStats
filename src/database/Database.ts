@@ -8,7 +8,7 @@ import { FoodEvent } from '../types/FoodEvent';
 
 export interface Database {
   // Create
-  addMeal(meal: Meal): Promise<void>;
+  addMeal(name: string, ingredients: number[]): Promise<void>;
   addFoodItem(foodItem: FoodItem): Promise<void>;
   deleteFoodItem(foodItem: FoodItem): Promise<void>;
   logEvent(eventName: string): Promise<number>;
@@ -32,15 +32,37 @@ export interface Database {
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
 
-// Insert a new food into the database
-async function addMeal(meal: Meal): Promise<void> {
+async function addMeal(name: string, ingredients: number[]): Promise<void> {
   return getDatabase()
-    .then((db) => db.executeSql('INSERT INTO Food (title) VALUES (?);', [meal]))
+    .then((db) => db.executeSql('INSERT INTO Meals (name) VALUES (?);', [name]))
     .then(([results]) => {
       const { insertId } = results;
       console.log(
-        `[db] Added food with title: "${meal}"! InsertId: ${insertId}`,
+        `[db] Added meal with title: "${name}"! InsertId: ${insertId}`,
       );
+      ingredients.forEach((foodItemId: number) => {
+        addIngredient(insertId, foodItemId);
+      });
+    });
+}
+
+async function addIngredient(
+  meal_id: number,
+  food_id: number,
+): Promise<number> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO Ingredients (meal_id, food_id) VALUES (?, ?);',
+        [meal_id, food_id],
+      ),
+    )
+    .then(([results]) => {
+      const { insertId } = results;
+      console.log(
+        `[db] Added ingredient with meal_id: "${meal_id}"! InsertId: ${insertId}`,
+      );
+      return insertId;
     });
 }
 
@@ -135,7 +157,7 @@ async function getAllFoodItems(): Promise<FoodItem[]> {
   return getDatabase()
     .then((db) =>
       // Get all the food, ordered by newest food first
-      db.executeSql('SELECT * FROM FoodItem ORDER BY food_id DESC;'),
+      db.executeSql('SELECT * FROM FoodItems ORDER BY food_id DESC;'),
     )
     .then(([results]) => {
       if (results === undefined) {

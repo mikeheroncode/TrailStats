@@ -35,11 +35,16 @@ export function useFoodItems() {
     setSelectedFoodItem(foodItem);
   }
 
+  function addMeal(name: string, ingredients: number[]): Promise<void> {
+    return database.addMeal(name, ingredients);
+  }
+
   return {
     foodItems,
     selectFoodItem,
     addFoodItem,
     deleteFoodItem,
     selectedFoodItem,
+    addMeal,
   };
 }
