@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Pressable } from 'react-native';
+import { FlatList, Modal, Pressable, TextInput } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors } from './Colors';
 import { EditFoodItem } from './EditFoodItem';
@@ -9,6 +9,8 @@ import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tab
 import FoodItemContext from '../context/FoodItemContext';
 import { FoodItemTile } from './FoodItemTile';
 import { useFoodEvent } from '../hooks/useFoodEvent';
+import { useMeals } from '../hooks/useMeals';
+import { TouchableHighlight } from 'react-native';
 
 type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'FoodItems'>;
 
@@ -26,32 +28,86 @@ export const FoodItemList = ({ route, navigation }: Props) => {
   const contextFoodItems = useContext(FoodItemContext);
   const { logFoodEvent } = useFoodEvent();
   const [selectedFoodItems, setSelectedFoodItems] = useState<number[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newMealName, setNewMealName] = useState('New Meal');
+  const { addMeal } = useMeals();
+
+  const createNewMeal = () => {
+    addMeal(newMealName, selectedFoodItems);
+    setModalVisible(false);
+    setSelectedFoodItems([]);
+  };
   return (
     <View style={styles.editItemScreen}>
-      {contextFoodItems.map((foodItem, i) => {
-        return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {}}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Meal Name</Text>
+            <TextInput
+              style={styles.editItemFormTextInput}
+              value={newMealName}
+              onChangeText={(text) => setNewMealName(text)}
+              selectTextOnFocus={true}
+            />
+            <View style={styles.modalButtonsContainer}>
+              <Pressable
+                style={styles.modalButton}
+                onPress={() => {
+                  setModalVisible(!modalVisible);
+                }}>
+                <Text style={styles.textStyle}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={styles.modalButton}
+                onPress={() => {
+                  createNewMeal();
+                }}>
+                <Text style={styles.textStyle}>Create</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <FlatList
+        data={contextFoodItems}
+        renderItem={({ item }) => (
           <Pressable
-            key={i}
             onPress={() =>
-              selectedFoodItems.includes(foodItem.food_id)
+              selectedFoodItems.includes(item.food_id)
                 ? setSelectedFoodItems(
-                    selectedFoodItems.filter((id) => foodItem.food_id !== id),
+                    selectedFoodItems.filter((id) => item.food_id !== id),
                   )
-                : setSelectedFoodItems([...selectedFoodItems, foodItem.food_id])
+                : setSelectedFoodItems([...selectedFoodItems, item.food_id])
             }
-            onLongPress={() => logFoodEvent(foodItem)}
+            onLongPress={() => logFoodEvent(item)}
             style={
-              selectedFoodItems.includes(foodItem.food_id)
+              selectedFoodItems.includes(item.food_id)
                 ? styles.selectedAddItemButton
                 : styles.addItemButton
             }>
             <FoodItemTile
-              foodItem={foodItem}
-              isSelected={selectedFoodItems.includes(foodItem.food_id)}
+              foodItem={item}
+              isSelected={selectedFoodItems.includes(item.food_id)}
             />
           </Pressable>
-        );
-      })}
+        )}
+        keyExtractor={(item, index) => index.toString()}
+      />
+      <Pressable
+        onPress={() => {
+          setModalVisible(true);
+        }}
+        style={
+          selectedFoodItems.length > 1
+            ? styles.addMealButton
+            : { display: 'none' }
+        }>
+        <Text style={styles.addMealButtonText}> Add Meal </Text>
+      </Pressable>
     </View>
   );
 };
@@ -59,7 +115,6 @@ const styles = StyleSheet.create({
   editItemScreen: {
     backgroundColor: Colors.green,
     flex: 1,
-    alignItems: 'center',
     fontSize: 20,
   },
   addItemButton: {
@@ -70,6 +125,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
   },
+  addMealButton: {
+    width: '40%',
+    backgroundColor: Colors.blue,
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
+  addMealButtonText: {
+    color: Colors.white,
+    fontSize: 20,
+  },
   selectedAddItemButton: {
     width: '90%',
     marginTop: 5,
@@ -78,23 +146,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
   },
+  centeredView: {
+    flex: 1,
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  editItemFormTextInput: {
+    backgroundColor: Colors.purpleLight,
+    height: 40,
+    width: 200,
+    padding: 10,
+    borderColor: 'gray',
+    borderWidth: 1,
+    color: Colors.white,
+    marginTop: 5,
+  },
+  modalButtonsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  modalButton: {
+    backgroundColor: '#F194FF',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+    margin: 10,
+    marginBottom: 5,
+  },
 });
-
-/*
-<Pressable
-            key={i}
-            onPress={() =>
-              navigation.navigate('EditFoodItem', {
-                foodItem: foodItem,
-                createNewItem: false,
-              })
-            }
-            style={styles.addItemButton}>
-            <FoodItemTile
-              foodItem={foodItem}
-              isSelected={
-                selectedFoodItem &&
-                selectedFoodItem.food_id === foodItem.food_id
-              }
-            />
-          </Pressable>*/
