@@ -32,6 +32,7 @@ export const GeneralLog = (props: Props) => {
             <FoodEventTile foodEvent={item} isSelected={false} />
           </Pressable>
         )}
+        keyExtractor={(item, index) => index.toString()}
       />
     </View>
   );

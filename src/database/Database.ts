@@ -210,9 +210,10 @@ async function getAllMeals(): Promise<Meal[]> {
       const meals: Meal[] = [];
       for (let i = 0; i < count; i++) {
         const row = results.rows.item(i);
-        const { name, id } = row;
-        console.log(`[db] Food title: ${name}, id: ${id}`);
-        //meals.push({ id, name });
+        const { name, meal_id } = row;
+        console.log(`[db] Food title: ${name}, id: ${meal_id}`);
+        const ingredients = [] as FoodItem[];
+        meals.push({ meal_id, name, ingredients });
       }
       return meals;
     });

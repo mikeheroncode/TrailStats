@@ -1,5 +1,6 @@
 import { FoodItem } from '../types/FoodItem';
 import { useDatabase } from '../context/DatabaseContext';
+import { FoodEvent } from '../types/FoodEvent';
 
 export function useFoodEvent() {
   const database = useDatabase();
