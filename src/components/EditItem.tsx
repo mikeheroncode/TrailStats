@@ -12,7 +12,9 @@ import { Colors } from './Colors';
 import { EditFoodItem } from './EditFoodItem';
 import { FoodItemList } from './FoodItemList';
 import { useFoodItems } from '../hooks/useFoodItems';
-import FoodItemContext from '../context/FoodItemContext';
+import FoodItemContext from '../context/AllFoodContext';
+import { MealList } from './MealList';
+import { AllFoodProvider } from '../context/AllFoodContext';
 
 const EditItemsTab = createMaterialTopTabNavigator<EditItemTabParamList>();
 
@@ -29,67 +31,19 @@ type Props = {
 };
 
 export const EditItem = ({ route, navigation }: Props) => {
-  const {
-    foodItems,
-    selectedFoodItem,
-    addFoodItem,
-    deleteFoodItem,
-    selectFoodItem,
-  } = useFoodItems();
-  console.log('edit item');
-  console.log(foodItems);
   return (
-    <FoodItemContext.Provider value={foodItems}>
+    <AllFoodProvider>
       <EditItemsTab.Navigator initialRouteName="FoodItems">
+        <EditItemsTab.Screen name="FoodItems" component={FoodItemList} />
         <EditItemsTab.Screen
-          name="FoodItems"
-          component={FoodItemList}
+          name="Meals"
+          component={MealList}
           initialParams={{
-            foodItems: foodItems,
-            selectedFoodItem: selectedFoodItem,
+            meals: [],
           }}
         />
         <EditItemsTab.Screen name="EditFoodItem" component={EditFoodItem} />
       </EditItemsTab.Navigator>
-    </FoodItemContext.Provider>
+    </AllFoodProvider>
   );
 };
-const styles = StyleSheet.create({
-  editItemScreen: {
-    backgroundColor: Colors.green,
-    flex: 1,
-    alignItems: 'center',
-    fontSize: 20,
-  },
-  editItemForm: {
-    backgroundColor: Colors.purple,
-    width: '85%',
-    padding: 10,
-    margin: 10,
-  },
-  editItemLabels: {
-    color: Colors.white,
-    fontSize: 20,
-  },
-  editItemFormTextInput: {
-    backgroundColor: Colors.purpleLight,
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    color: Colors.white,
-    marginTop: 5,
-  },
-  addItemButton: {
-    width: '65%',
-    height: 50,
-    marginTop: 20,
-    backgroundColor: Colors.purpleLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
-  homeButtonText: {
-    color: Colors.white,
-    fontSize: 20,
-  },
-});

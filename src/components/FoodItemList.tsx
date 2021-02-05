@@ -1,16 +1,13 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { FlatList, Modal, Pressable, TextInput } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors } from './Colors';
-import { EditFoodItem } from './EditFoodItem';
 import { RouteProp } from '@react-navigation/native';
 import { EditItemTabParamList } from '../types/EditItemTabParamList';
 import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
-import FoodItemContext from '../context/FoodItemContext';
 import { FoodItemTile } from './FoodItemTile';
 import { useFoodEvent } from '../hooks/useFoodEvent';
-import { useMeals } from '../hooks/useMeals';
-import { TouchableHighlight } from 'react-native';
+import { useFoodItems } from '../hooks/useFoodItems';
 
 type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'FoodItems'>;
 
@@ -25,12 +22,11 @@ type Props = {
 };
 
 export const FoodItemList = ({ route, navigation }: Props) => {
-  const contextFoodItems = useContext(FoodItemContext);
+  const { foodItems, addMeal } = useFoodItems();
   const { logFoodEvent } = useFoodEvent();
   const [selectedFoodItems, setSelectedFoodItems] = useState<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newMealName, setNewMealName] = useState('New Meal');
-  const { addMeal } = useMeals();
 
   const createNewMeal = () => {
     addMeal(newMealName, selectedFoodItems);
@@ -73,7 +69,7 @@ export const FoodItemList = ({ route, navigation }: Props) => {
         </View>
       </Modal>
       <FlatList
-        data={contextFoodItems}
+        data={foodItems}
         renderItem={({ item }) => (
           <Pressable
             onPress={() =>
