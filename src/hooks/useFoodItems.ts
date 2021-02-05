@@ -1,20 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { FoodItem } from '../types/FoodItem';
 import { useDatabase } from '../context/DatabaseContext';
+import { Meal } from '../types/Meal';
+import { useFood } from '../context/AllFoodContext';
 
 // Hook for managing and accessing fooditems (CRUD)
 export function useFoodItems() {
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [selectedFoodItem, setSelectedFoodItem] = useState<FoodItem>();
+  const { foodItems, setFoodItems, meals, setMeals } = useFood();
   const database = useDatabase();
 
   useEffect(() => {
     refreshListOfFoodItems();
+    refreshListOfMeals();
   }, []);
 
   function refreshListOfFoodItems() {
-    // Query all fooditems from the DB, then store them as state
     return database.getAllFoodItems().then(setFoodItems);
+  }
+
+  function refreshListOfMeals() {
+    return database.getAllMeals().then(setMeals);
   }
 
   function addFoodItem(foodItem: FoodItem): Promise<void> {
@@ -31,20 +36,16 @@ export function useFoodItems() {
     return Promise.reject(Error('Could not delete an undefined foodItem'));
   }
 
-  async function selectFoodItem(foodItem: FoodItem) {
-    setSelectedFoodItem(foodItem);
-  }
-
   function addMeal(name: string, ingredients: number[]): Promise<void> {
-    return database.addMeal(name, ingredients);
+    return database.addMeal(name, ingredients).then(refreshListOfMeals);
   }
 
   return {
     foodItems,
-    selectFoodItem,
     addFoodItem,
     deleteFoodItem,
-    selectedFoodItem,
     addMeal,
+    meals,
+    setMeals,
   };
 }
