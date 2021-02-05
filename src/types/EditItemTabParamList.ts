@@ -1,7 +1,9 @@
 import { FoodItem } from './FoodItem';
+import { Meal } from './Meal';
 
 export type EditItemTabParamList = {
-  FoodItems: { foodItems: FoodItem[]; selectedFoodItem: FoodItem | undefined };
+  FoodItems: undefined;
+  Meals: { meals: Meal[] | undefined };
   EditFoodItem: { foodItem: FoodItem; createNewItem: boolean } | undefined;
 };
 

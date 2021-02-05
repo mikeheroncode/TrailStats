@@ -10,4 +10,5 @@ export const Colors = {
   green: '#277553',
   purple: '#5B02B5',
   purpleLight: '#831FE9',
+  blue: '#164ff5',
 };
