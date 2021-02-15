@@ -5,6 +5,8 @@ import { FoodItem } from '../types/FoodItem';
 import { AppState, AppStateStatus } from 'react-native';
 import { EventLog } from '../types/EventLog';
 import { FoodEvent } from '../types/FoodEvent';
+import { LocationSettings } from '../types/LocationSettings';
+import { Location } from '../types/Location';
 
 export interface Database {
   // Create
@@ -15,6 +17,7 @@ export interface Database {
   logFoodEvent(
     eventId: number,
     food_id: number,
+    location_id: number,
     eventName: string,
   ): Promise<void>;
   deleteFoodEvent(event: FoodEvent): Promise<void>;
@@ -28,6 +31,19 @@ export interface Database {
   updateFoodItem(foodItem: FoodItem): Promise<void>;
   // Delete
   deleteMeal(meal: Meal): Promise<void>;
+  getDefaultLocationSettings(): Promise<LocationSettings>;
+  updateDefaultLocationSettings(
+    newLocationSettings: LocationSettings,
+  ): Promise<void>;
+  addLocation(
+    accuracy: number,
+    altitude: number | null,
+    heading: number | null,
+    latitude: number,
+    longitude: number,
+    speed: number | null,
+    timestamp: number,
+  ): Promise<number>;
 }
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
@@ -83,13 +99,14 @@ async function logEvent(eventName: string): Promise<number> {
 async function logFoodEvent(
   eventId: number,
   food_id: number,
+  location_id: number,
   eventName: string,
 ): Promise<void> {
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO FoodEvent (event_id, food_id, name) VALUES (?, ?, ?);',
-        [eventId, food_id, eventName],
+        'INSERT INTO FoodEvent (event_id, food_id, location_id, name) VALUES (?, ?, ?, ?);',
+        [eventId, food_id, location_id, eventName],
       ),
     )
     .then(([results]) => {
@@ -294,6 +311,84 @@ async function deleteMeal(meal: Meal): Promise<void> {
     });
 }
 
+async function getDefaultLocationSettings(): Promise<LocationSettings> {
+  console.log('[db] Fetching locationSettings from the db...');
+  const defaultLocationSettings: LocationSettings = {
+    includeLocation: true,
+    enableHighAccuracy: true,
+    maxTimeout: 15000,
+    maxAge: 3600 * 60,
+  };
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql(
+        'SELECT * FROM LocationSettings ORDER BY locationSettings_id DESC LIMIT 1;',
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return defaultLocationSettings;
+      }
+      const row = results.rows.item(0);
+      const { includeLocation, enableHighAccuracy, maxTimeout, maxAge } = row;
+      return {
+        includeLocation: includeLocation === 1,
+        enableHighAccuracy: enableHighAccuracy === 1,
+        maxTimeout: maxTimeout,
+        maxAge: maxAge,
+      } as LocationSettings;
+    });
+}
+
+async function updateDefaultLocationSettings(
+  newLocationSettings: LocationSettings,
+): Promise<void> {
+  if (newLocationSettings === undefined) {
+    return Promise.reject(Error('Could not add undefined Food Item.'));
+  }
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO LocationSettings( includeLocation, enableHighAccuracy, maxTimeout, maxAge ) VALUES (?, ?, ?, ?);',
+        [
+          newLocationSettings.includeLocation,
+          newLocationSettings.enableHighAccuracy,
+          newLocationSettings.maxTimeout,
+          newLocationSettings.maxAge,
+        ],
+      ),
+    )
+    .then(([results]) => {
+      console.log(
+        `[db] Created successfully LocationSettings: ${results.insertId}`,
+      );
+    });
+}
+async function addLocation(
+  accuracy: number,
+  altitude: number | null,
+  heading: number,
+  latitude: number,
+  longitude: number,
+  speed: number,
+  timestamp: number,
+): Promise<number> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO Location( accuracy, altitude, heading, latitude, longitude, speed, timestamp ) VALUES (?, ?, ?, ?, ?, ?, ?);',
+        [accuracy, altitude, heading, latitude, longitude, speed, timestamp],
+      ),
+    )
+    .then(([results]) => {
+      console.log(
+        `[db] Location created successfully with id: ${results.insertId}`,
+      );
+      return results.insertId;
+    });
+}
+
 // "Private" helpers
 
 async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -377,4 +472,7 @@ export const sqliteDatabase: Database = {
   logFoodEvent,
   getFoodEvents,
   deleteFoodEvent,
+  getDefaultLocationSettings,
+  updateDefaultLocationSettings,
+  addLocation,
 };
