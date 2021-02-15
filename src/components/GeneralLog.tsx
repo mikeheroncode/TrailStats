@@ -2,7 +2,6 @@ import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Colors } from './Colors';
-import { FoodItem } from '../types/FoodItem';
 import { useEventLog } from '../hooks/useEventLog';
 import { FoodEventTile } from './FoodEventTile';
 
