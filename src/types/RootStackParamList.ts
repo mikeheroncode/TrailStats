@@ -3,4 +3,5 @@ export type RootStackParamList = {
   EditItem: undefined;
   Log: undefined;
   LocationSettings: undefined;
+  RecordWaterSource: undefined;
 };

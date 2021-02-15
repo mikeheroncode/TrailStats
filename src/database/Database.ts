@@ -7,6 +7,7 @@ import { EventLog } from '../types/EventLog';
 import { FoodEvent } from '../types/FoodEvent';
 import { LocationSettings } from '../types/LocationSettings';
 import { WeightEvent } from '../types/WeightEvent';
+import { WaterSourceEvent } from '../types/WaterSourceEvent';
 import { Location } from '../types/Location';
 
 export interface Database {
@@ -60,6 +61,14 @@ export interface Database {
     accessibility: number,
     description: string | null,
   ): Promise<void>;
+  addWaterSourceEvent(
+    event_id: number,
+    location_id: number | null,
+    flow: number,
+    accessibility: number,
+    description: string | null,
+  ): Promise<void>;
+  getAllWaterSourceEvents(): Promise<WaterSourceEvent[]>;
 }
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
@@ -502,6 +511,88 @@ async function addLocation(
     });
 }
 
+async function addWaterSourceEvent(
+  event_id: number,
+  location_id: number | null,
+  flow: number,
+  accessibility: number,
+  description: string | null,
+): Promise<void> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO WaterSourceEvent( event_id, location_id, flow, accessibility, description) VALUES (?, ?, ?, ?, ?);',
+        [event_id, location_id, flow, accessibility, description],
+      ),
+    )
+    .then(([results]) => {
+      console.log(
+        `[db] WaterSource created successfully with id: ${results.insertId}`,
+      );
+    });
+}
+
+async function getAllWaterSourceEvents(): Promise<WaterSourceEvent[]> {
+  console.log('[db] Fetching watersources from the db...');
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql(
+        'SELECT * FROM WaterSourceEvent as wse Left JOIN Location as l ON WaterSourceEvent.location_id = Location.location_id ORDER BY waterSourceEvent_id DESC;',
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return [];
+      }
+      const count = results.rows.length;
+      const waterSourceEvents: WaterSourceEvent[] = [];
+      for (let i = 0; i < count; i++) {
+        const row = results.rows.item(i);
+        const {
+          waterSourceEvent_id,
+          event_id,
+          location_id,
+          flow,
+          accessibility,
+          description,
+          timestamp,
+          accuracy,
+          altitude,
+          heading,
+          latitude,
+          longitude,
+          speed,
+          location_timestamp,
+        } = row;
+        console.log(
+          `[db] WaterSource title: ${description}, id: ${waterSourceEvent_id}`,
+        );
+        const waterSourceEvent: WaterSourceEvent = {
+          waterSourceEvent_id: waterSourceEvent_id,
+          event_id: event_id,
+          flow: flow,
+          accessibility: accessibility,
+          description: description,
+          timestamp: timestamp,
+        };
+        if (location_id) {
+          waterSourceEvent.location = {
+            location_id,
+            accuracy,
+            altitude,
+            heading,
+            latitude,
+            longitude,
+            speed,
+            location_timestamp,
+          };
+        }
+        waterSourceEvents.push(waterSourceEvent);
+      }
+      return waterSourceEvents;
+    });
+}
 // "Private" helpers
 
 async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -591,4 +682,6 @@ export const sqliteDatabase: Database = {
   addLocation,
   getAllWeightEvents,
   getLastWeightEvent,
+  addWaterSourceEvent,
+  getAllWaterSourceEvents,
 };
