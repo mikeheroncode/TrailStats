@@ -8,6 +8,7 @@ import { FoodEvent } from '../types/FoodEvent';
 import { LocationSettings } from '../types/LocationSettings';
 import { WeightEvent } from '../types/WeightEvent';
 import { WaterSourceEvent } from '../types/WaterSourceEvent';
+import { PersonEvent } from '../types/PersonEvent';
 import { Location } from '../types/Location';
 
 export interface Database {
@@ -69,6 +70,19 @@ export interface Database {
     description: string | null,
   ): Promise<void>;
   getAllWaterSourceEvents(): Promise<WaterSourceEvent[]>;
+  addPersonEvent(
+    event_id: number,
+    location_id: number | null,
+    age: number,
+    gender: number,
+    trailName: string | null,
+    hikeLength: number | null,
+    packWeight: number | null,
+    shelter: number | null,
+    description: string | null,
+  ): Promise<void>;
+  getAllPersonEvents(): Promise<PersonEvent[]>;
+  getLastPersonEvent(): Promise<PersonEvent>;
 }
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
@@ -593,6 +607,203 @@ async function getAllWaterSourceEvents(): Promise<WaterSourceEvent[]> {
       return waterSourceEvents;
     });
 }
+async function addPersonEvent(
+  event_id: number,
+  location_id: number,
+  age: number,
+  gender: number,
+  trailName: string | null,
+  hikeLength: number | null,
+  packWeight: number | null,
+  shelter: number | null,
+  description: string | null,
+): Promise<void> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO PersonEvent( event_id, age, gender, trailName, hikeLength, packWeight, shelter, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+        [
+          event_id,
+          location_id,
+          age,
+          gender,
+          trailName,
+          hikeLength,
+          packWeight,
+          shelter,
+          description,
+        ],
+      ),
+    )
+    .then(([results]) => {
+      console.log(
+        `[db] Person created successfully with id: ${results.insertId}`,
+      );
+    });
+}
+
+async function getAllPersonEvents(): Promise<PersonEvent[]> {
+  console.log('[db] Fetching watersources from the db...');
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql(
+        'SELECT * FROM PersonEvent Left JOIN Location ON PersonEvent.location_id = Location.location_id ORDER BY personEvent_id DESC;',
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return [];
+      }
+      const count = results.rows.length;
+      const personEvents: PersonEvent[] = [];
+      for (let i = 0; i < count; i++) {
+        const row = results.rows.item(i);
+        const {
+          personEvent_id,
+          event_id,
+          location_id,
+          age,
+          gender,
+          trailName,
+          hikeLength,
+          packWeight,
+          shelter,
+          description,
+          timestamp,
+          accuracy,
+          altitude,
+          heading,
+          latitude,
+          longitude,
+          speed,
+          location_timestamp,
+        } = row;
+        console.log(
+          `[db] PersonEvent title: ${description}, id: ${personEvent_id}`,
+        );
+        const personEvent: PersonEvent = {
+          personEvent_id: personEvent_id,
+          event_id: event_id,
+          age: age,
+          gender: gender,
+          timestamp: timestamp,
+        };
+        if (location_id) {
+          personEvent.location = {
+            location_id,
+            accuracy,
+            altitude,
+            heading,
+            latitude,
+            longitude,
+            speed,
+            location_timestamp,
+          };
+        }
+        if (trailName) {
+          personEvent.trailName = trailName;
+        }
+        if (hikeLength) {
+          personEvent.hikeLength = hikeLength;
+        }
+        if (packWeight) {
+          personEvent.packWeight = packWeight;
+        }
+        if (shelter) {
+          personEvent.shelter = shelter;
+        }
+        if (description) {
+          personEvent.description = description;
+        }
+        personEvents.push(personEvent);
+      }
+      return personEvents;
+    });
+}
+
+async function getLastPersonEvent(): Promise<PersonEvent> {
+  console.log('[db] Fetching watersources from the db...');
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql(
+        'SELECT * FROM PersonEvent Left JOIN Location ON PersonEvent.location_id = Location.location_id ORDER BY personEvent_id DESC LIMIT 1;',
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return {
+          personEvent_id: 0,
+          event_id: 0,
+          age: 0,
+          gender: 0,
+          timestamp: 0,
+        } as PersonEvent;
+      }
+      const row = results.rows.item(0);
+      const {
+        personEvent_id,
+        event_id,
+        location_id,
+        age,
+        gender,
+        trailName,
+        hikeLength,
+        packWeight,
+        shelter,
+        description,
+        timestamp,
+        accuracy,
+        altitude,
+        heading,
+        latitude,
+        longitude,
+        speed,
+        location_timestamp,
+      } = row;
+      console.log(
+        `[db] PersonEvent title: ${description}, id: ${personEvent_id}`,
+      );
+      const personEvent: PersonEvent = {
+        personEvent_id: personEvent_id as number,
+        event_id: event_id,
+        age: age,
+        gender: gender,
+        timestamp: timestamp,
+      };
+      if (location_id) {
+        const location: Location = {
+          location_id: location_id,
+          accuracy: accuracy,
+          altitude: altitude,
+          heading: heading,
+          latitude: latitude,
+          longitude: longitude,
+          speed: speed,
+          location_timestamp: location_timestamp,
+        };
+        personEvent.location = location;
+      }
+      if (trailName) {
+        personEvent.trailName = trailName;
+      }
+      if (hikeLength) {
+        personEvent.hikeLength = hikeLength;
+      }
+      if (packWeight) {
+        personEvent.packWeight = packWeight;
+      }
+      if (shelter) {
+        personEvent.shelter = shelter;
+      }
+      if (description) {
+        personEvent.description = description;
+      }
+      return personEvent;
+    });
+}
+
 // "Private" helpers
 
 async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -684,4 +895,7 @@ export const sqliteDatabase: Database = {
   getLastWeightEvent,
   addWaterSourceEvent,
   getAllWaterSourceEvents,
+  addPersonEvent,
+  getAllPersonEvents,
+  getLastPersonEvent,
 };
