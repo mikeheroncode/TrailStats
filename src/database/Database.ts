@@ -6,6 +6,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { EventLog } from '../types/EventLog';
 import { FoodEvent } from '../types/FoodEvent';
 import { LocationSettings } from '../types/LocationSettings';
+import { WeightEvent } from '../types/WeightEvent';
 import { Location } from '../types/Location';
 
 export interface Database {
@@ -35,6 +36,12 @@ export interface Database {
   updateDefaultLocationSettings(
     newLocationSettings: LocationSettings,
   ): Promise<void>;
+  addWeightEvent(
+    event_id: number,
+    location_id: number | null,
+    description: string,
+    weight: number,
+  ): Promise<void>;
   addLocation(
     accuracy: number,
     altitude: number | null,
@@ -44,6 +51,15 @@ export interface Database {
     speed: number | null,
     timestamp: number,
   ): Promise<number>;
+  getAllWeightEvents(): Promise<WeightEvent[]>;
+  getLastWeightEvent(): Promise<WeightEvent>;
+  addWaterSourceEvent(
+    event_id: number,
+    location_id: number | null,
+    flow: number,
+    accessibility: number,
+    description: string | null,
+  ): Promise<void>;
 }
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
@@ -365,6 +381,103 @@ async function updateDefaultLocationSettings(
       );
     });
 }
+
+async function addWeightEvent(
+  event_id: number,
+  location_id: number | null,
+  description: string,
+  weight: number,
+): Promise<void> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO WeightEvent( event_id, location_id, description, weight) VALUES (?, ?, ?, ?);',
+        [event_id, location_id, description, weight],
+      ),
+    )
+    .then(([results]) => {
+      console.log(
+        `[db] WeightEvent created successfully with id: ${results.insertId}`,
+      );
+    });
+}
+
+async function getAllWeightEvents(): Promise<WeightEvent[]> {
+  console.log('[db] Fetching food from the db...');
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql('SELECT * FROM WeightEvent ORDER BY weightEvent_id DESC;'),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return [];
+      }
+      const count = results.rows.length;
+      const weightEvents: WeightEvent[] = [];
+      for (let i = 0; i < count; i++) {
+        const row = results.rows.item(i);
+        const {
+          weightEvent_id,
+          event_id,
+          description,
+          weight,
+          timestamp,
+          location,
+        } = row;
+        console.log(
+          `[db] WEightEvent title: ${description}, id: ${weightEvent_id}`,
+        );
+        weightEvents.push({
+          weightEvent_id,
+          event_id,
+          description,
+          weight,
+          timestamp,
+          location,
+        });
+      }
+      return weightEvents;
+    });
+}
+
+async function getLastWeightEvent(): Promise<WeightEvent> {
+  console.log('[db] Fetching food from the db...');
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql(
+        'SELECT * FROM WeightEvent Left JOIN Location ON WeightEvent.location_id = Location.location_id ORDER BY weightEvent_id DESC LIMIT 1;',
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return Promise.reject(Error('Location error'));
+      }
+      const row = results.rows.item(0);
+      console.log('ROW BELOW');
+      console.log(row);
+      const {
+        weightEvent_id,
+        event_id,
+        description,
+        weight,
+        timestamp,
+        location,
+      } = row;
+      console.log('Location');
+      console.log(location);
+      return {
+        weightEvent_id,
+        event_id,
+        description,
+        weight,
+        timestamp,
+        location,
+      } as WeightEvent;
+    });
+}
+
 async function addLocation(
   accuracy: number,
   altitude: number | null,
@@ -474,5 +587,8 @@ export const sqliteDatabase: Database = {
   deleteFoodEvent,
   getDefaultLocationSettings,
   updateDefaultLocationSettings,
+  addWeightEvent,
   addLocation,
+  getAllWeightEvents,
+  getLastWeightEvent,
 };
