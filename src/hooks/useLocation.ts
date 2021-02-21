@@ -4,8 +4,8 @@ import { useLocationSettingsContext } from '../context/LocationSettingsContext';
 import { LocationSettings } from '../types/LocationSettings';
 
 import Geolocation from 'react-native-geolocation-service';
+import { EventTable } from '../types/EventLog';
 
-// Hook for managing and accessing fooditems (CRUD)
 export function useLocation() {
   const {
     locationSettings,
@@ -17,7 +17,10 @@ export function useLocation() {
     getDefaultLocationSettings();
   }, []);
 
-  function addCurrentLocation(): Promise<number> {
+  async function addCurrentLocation(
+    primaryKey: number,
+    tableToUpdate: EventTable,
+  ): Promise<void> {
     if (!locationSettings.includeLocation) {
       return Promise.reject(Error('Location is disabled'));
     }
@@ -32,21 +35,23 @@ export function useLocation() {
           longitude,
           speed,
         } = position.coords;
-        const location_id = database.addLocation(
-          accuracy,
-          altitude,
-          heading,
-          latitude,
-          longitude,
-          speed,
-          position.timestamp,
-        );
-        return location_id;
+        return database
+          .addLocation(
+            accuracy,
+            altitude,
+            heading,
+            latitude,
+            longitude,
+            speed,
+            position.timestamp,
+          )
+          .then((location_id) => {
+            database.addEventLocation(primaryKey, location_id, tableToUpdate);
+          });
       },
       (error) => {
         // See error code charts below.
         console.log(error.code, error.message);
-        return Promise.reject(Error('Location error'));
       },
       {
         enableHighAccuracy: locationSettings.enableHighAccuracy,
@@ -54,7 +59,6 @@ export function useLocation() {
         maximumAge: locationSettings.maxAge,
       },
     );
-    return Promise.reject(Error('Location error'));
   }
 
   function getDefaultLocationSettings() {
@@ -71,6 +75,7 @@ export function useLocation() {
 
   return {
     locationSettings,
+    setLocationSettings,
     updateDefaultLocationSettings,
     addCurrentLocation,
   };

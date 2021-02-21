@@ -1,28 +1,48 @@
 import SQLite from 'react-native-sqlite-storage';
-import { DatabaseInitialization } from './DatabaseInitialization';
 import { Meal } from '../types/Meal';
-import { FoodItem } from '../types/FoodItem';
+import { FoodItem, PendingFoodItem } from '../types/FoodItem';
 import { AppState, AppStateStatus } from 'react-native';
-import { EventLog } from '../types/EventLog';
+import { EventLog, EventTable } from '../types/EventLog';
 import { FoodEvent } from '../types/FoodEvent';
 import { LocationSettings } from '../types/LocationSettings';
 import { WeightEvent } from '../types/WeightEvent';
 import { WaterSourceEvent } from '../types/WaterSourceEvent';
 import { PersonEvent } from '../types/PersonEvent';
 import { Location } from '../types/Location';
+import { CampEvent, defaultCampEvent } from '../types/CampEvent';
 
 export interface Database {
   // Create
   addMeal(name: string, ingredients: number[]): Promise<void>;
-  addFoodItem(foodItem: FoodItem): Promise<void>;
+  addFoodItem(foodItem: PendingFoodItem): Promise<void>;
   deleteFoodItem(foodItem: FoodItem): Promise<void>;
   logEvent(eventName: string): Promise<number>;
-  logFoodEvent(
+  startEvent(
+    eventName: string,
+    startTime: number,
+    isSingleEvent: boolean,
+  ): Promise<number>;
+  endEvent(
+    event_id: number,
+    eventName: string,
+    startTime: number,
+  ): Promise<void>;
+  updateEvent(
+    event_id: number,
+    eventName: string,
+    startTime: number,
+    endTime: number | null,
+  ): Promise<void>;
+  addGenericEventLocation(
+    event_id: number,
+    location_id: number | null,
+    isStart: boolean,
+  ): Promise<void>;
+  addFoodEvent(
     eventId: number,
     food_id: number,
-    location_id: number,
     eventName: string,
-  ): Promise<void>;
+  ): Promise<number>;
   deleteFoodEvent(event: FoodEvent): Promise<void>;
   //getAllEvents(): Promise<EventLog>;
   getFoodEvents(): Promise<FoodEvent[]>;
@@ -40,10 +60,9 @@ export interface Database {
   ): Promise<void>;
   addWeightEvent(
     event_id: number,
-    location_id: number | null,
     description: string,
     weight: number,
-  ): Promise<void>;
+  ): Promise<number>;
   addLocation(
     accuracy: number,
     altitude: number | null,
@@ -57,22 +76,19 @@ export interface Database {
   getLastWeightEvent(): Promise<WeightEvent>;
   addWaterSourceEvent(
     event_id: number,
-    location_id: number | null,
     flow: number,
     accessibility: number,
     description: string | null,
-  ): Promise<void>;
+  ): Promise<number>;
   addWaterSourceEvent(
     event_id: number,
-    location_id: number | null,
     flow: number,
     accessibility: number,
     description: string | null,
-  ): Promise<void>;
+  ): Promise<number>;
   getAllWaterSourceEvents(): Promise<WaterSourceEvent[]>;
   addPersonEvent(
     event_id: number,
-    location_id: number | null,
     age: number,
     gender: number,
     trailName: string | null,
@@ -80,16 +96,43 @@ export interface Database {
     packWeight: number | null,
     shelter: number | null,
     description: string | null,
-  ): Promise<void>;
+  ): Promise<number>;
   getAllPersonEvents(): Promise<PersonEvent[]>;
   getLastPersonEvent(): Promise<PersonEvent>;
+  addCampEvent(
+    event_id: number,
+    madeCampAt: number | null,
+    ateDinnerAt: number | null,
+    wentToSleepAt: number | null,
+    setAlarmFor: number | null,
+    gotUpAt: number | null,
+    leftCampAt: number | null,
+    description: string | null,
+  ): Promise<number>;
+  updateCampEvent(
+    campEvent_id: number,
+    madeCampAt: number | null,
+    ateDinnerAt: number | null,
+    wentToSleepAt: number | null,
+    setAlarmFor: number | null,
+    gotUpAt: number | null,
+    leftCampAt: number | null,
+    description: string | null,
+  ): Promise<void>;
+  getAllCampEvents(): Promise<CampEvent[]>;
+  getLastCampEvent(): Promise<CampEvent>;
+  addEventLocation(
+    primaryKey: number,
+    location_id: number | null,
+    tableToUpdate: EventTable,
+  ): Promise<void>;
 }
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
 
 async function addMeal(name: string, ingredients: number[]): Promise<void> {
   return getDatabase()
-    .then((db) => db.executeSql('INSERT INTO Meals (name) VALUES (?);', [name]))
+    .then((db) => db.executeSql('INSERT INTO Meal (name) VALUES (?);', [name]))
     .then(([results]) => {
       const { insertId } = results;
       console.log(
@@ -108,7 +151,7 @@ async function addIngredient(
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO Ingredients (meal_id, food_id) VALUES (?, ?);',
+        'INSERT INTO Ingredient (meal_id, food_id) VALUES (?, ?);',
         [meal_id, food_id],
       ),
     )
@@ -134,18 +177,16 @@ async function logEvent(eventName: string): Promise<number> {
       return insertId;
     });
 }
-
-async function logFoodEvent(
-  eventId: number,
-  food_id: number,
-  location_id: number,
+async function startEvent(
   eventName: string,
-): Promise<void> {
+  startTime: number,
+  isSingleEvent: boolean,
+): Promise<number> {
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO FoodEvent (event_id, food_id, location_id, name) VALUES (?, ?, ?, ?);',
-        [eventId, food_id, location_id, eventName],
+        'INSERT INTO EventLog (name, start_timestamp, isSingleEvent) VALUES (?, ?, ?);',
+        [eventName, startTime, isSingleEvent],
       ),
     )
     .then(([results]) => {
@@ -153,6 +194,64 @@ async function logFoodEvent(
       console.log(
         `[db] Added event with name: "${eventName}"! InsertId: ${insertId}`,
       );
+      return insertId;
+    });
+}
+
+async function endEvent(
+  event_id: number,
+  eventName: string,
+  endTime: number,
+): Promise<void> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'UPDATE EventLog SET name = ?, end_timestamp = ? where event_id=?;',
+        [eventName, endTime, event_id],
+      ),
+    )
+    .then(([results]) => {
+      const { insertId } = results;
+      console.log(
+        `[db] Added event with name: "${eventName}"! InsertId: ${insertId}`,
+      );
+    });
+}
+
+async function updateEvent(
+  event_id: number,
+  eventName: string,
+  startTime: number,
+  endTime: number,
+): Promise<void> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'UPDATE EventLog SET name = ?, start_timestamp = ?, end_timestamp = ? WHERE event_id = ?;',
+        [eventName, startTime, endTime, event_id],
+      ),
+    )
+    .then(([results]) => {
+      console.log(
+        `[db] Added event with name: "${eventName}"! InsertId: ${event_id}`,
+      );
+    });
+}
+
+async function addFoodEvent(
+  eventId: number,
+  food_id: number,
+  eventName: string,
+): Promise<number> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO FoodEvent (event_id, food_id, name) VALUES (?, ?, ?);',
+        [eventId, food_id, eventName],
+      ),
+    )
+    .then(([results]) => {
+      return results.insertId;
     });
 }
 
@@ -213,7 +312,7 @@ async function getAllFoodItems(): Promise<FoodItem[]> {
   return getDatabase()
     .then((db) =>
       // Get all the food, ordered by newest food first
-      db.executeSql('SELECT * FROM FoodItems ORDER BY food_id DESC;'),
+      db.executeSql('SELECT * FROM FoodItem ORDER BY food_id DESC;'),
     )
     .then(([results]) => {
       if (results === undefined) {
@@ -232,6 +331,7 @@ async function getAllFoodItems(): Promise<FoodItem[]> {
           carbs,
           sugar,
           fiber,
+          size,
           addedAt,
         } = row;
         console.log(`[db] FoodItem: ${name}, id: ${food_id}`);
@@ -244,6 +344,7 @@ async function getAllFoodItems(): Promise<FoodItem[]> {
           carbs,
           sugar,
           fiber,
+          size,
           addedAt,
         });
       }
@@ -256,7 +357,7 @@ async function getAllMeals(): Promise<Meal[]> {
   return getDatabase()
     .then((db) =>
       // Get all the food, ordered by newest food first
-      db.executeSql('SELECT * FROM Meals ORDER BY meal_id DESC;'),
+      db.executeSql('SELECT * FROM Meal ORDER BY meal_id DESC;'),
     )
     .then(([results]) => {
       if (results === undefined) {
@@ -275,14 +376,14 @@ async function getAllMeals(): Promise<Meal[]> {
     });
 }
 
-async function addFoodItem(foodItem: FoodItem): Promise<void> {
+async function addFoodItem(foodItem: PendingFoodItem): Promise<void> {
   if (foodItem === undefined) {
     return Promise.reject(Error('Could not add undefined Food Item.'));
   }
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO FoodItem( name, calories, fat, protein, carbs, sugar, fiber ) VALUES (?, ?, ?, ?, ?, ?, ?);',
+        'INSERT INTO FoodItem( name, calories, fat, protein, carbs, sugar, fiber, size ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
         [
           foodItem.name,
           foodItem.calories,
@@ -291,6 +392,7 @@ async function addFoodItem(foodItem: FoodItem): Promise<void> {
           foodItem.carbs,
           foodItem.sugar,
           foodItem.fiber,
+          foodItem.size,
         ],
       ),
     )
@@ -370,6 +472,9 @@ async function getDefaultLocationSettings(): Promise<LocationSettings> {
         return defaultLocationSettings;
       }
       const row = results.rows.item(0);
+      if (row === undefined) {
+        return defaultLocationSettings;
+      }
       const { includeLocation, enableHighAccuracy, maxTimeout, maxAge } = row;
       return {
         includeLocation: includeLocation === 1,
@@ -407,21 +512,18 @@ async function updateDefaultLocationSettings(
 
 async function addWeightEvent(
   event_id: number,
-  location_id: number | null,
   description: string,
   weight: number,
-): Promise<void> {
+): Promise<number> {
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO WeightEvent( event_id, location_id, description, weight) VALUES (?, ?, ?, ?);',
-        [event_id, location_id, description, weight],
+        'INSERT INTO WeightEvent( event_id, description, weight) VALUES (?, ?, ?);',
+        [event_id, description, weight],
       ),
     )
     .then(([results]) => {
-      console.log(
-        `[db] WeightEvent created successfully with id: ${results.insertId}`,
-      );
+      return results.insertId;
     });
 }
 
@@ -474,10 +576,20 @@ async function getLastWeightEvent(): Promise<WeightEvent> {
       ),
     )
     .then(([results]) => {
+      const defaultWeightEvent: WeightEvent = {
+        weightEvent_id: 0,
+        event_id: 0,
+        description: '',
+        weight: 185,
+        timestamp: 0,
+      };
       if (results === undefined) {
         return Promise.reject(Error('Location error'));
       }
       const row = results.rows.item(0);
+      if (row === undefined) {
+        return defaultWeightEvent;
+      }
       console.log('ROW BELOW');
       console.log(row);
       const {
@@ -513,7 +625,7 @@ async function addLocation(
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO Location( accuracy, altitude, heading, latitude, longitude, speed, timestamp ) VALUES (?, ?, ?, ?, ?, ?, ?);',
+        'INSERT INTO Location( accuracy, altitude, heading, latitude, longitude, speed, location_timestamp ) VALUES (?, ?, ?, ?, ?, ?, ?);',
         [accuracy, altitude, heading, latitude, longitude, speed, timestamp],
       ),
     )
@@ -527,22 +639,19 @@ async function addLocation(
 
 async function addWaterSourceEvent(
   event_id: number,
-  location_id: number | null,
   flow: number,
   accessibility: number,
   description: string | null,
-): Promise<void> {
+): Promise<number> {
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO WaterSourceEvent( event_id, location_id, flow, accessibility, description) VALUES (?, ?, ?, ?, ?);',
-        [event_id, location_id, flow, accessibility, description],
+        'INSERT INTO WaterSourceEvent( event_id, flow, accessibility, description) VALUES (?, ?, ?, ?);',
+        [event_id, flow, accessibility, description],
       ),
     )
     .then(([results]) => {
-      console.log(
-        `[db] WaterSource created successfully with id: ${results.insertId}`,
-      );
+      return results.insertId;
     });
 }
 
@@ -609,7 +718,6 @@ async function getAllWaterSourceEvents(): Promise<WaterSourceEvent[]> {
 }
 async function addPersonEvent(
   event_id: number,
-  location_id: number,
   age: number,
   gender: number,
   trailName: string | null,
@@ -617,14 +725,13 @@ async function addPersonEvent(
   packWeight: number | null,
   shelter: number | null,
   description: string | null,
-): Promise<void> {
+): Promise<number> {
   return getDatabase()
     .then((db) =>
       db.executeSql(
         'INSERT INTO PersonEvent( event_id, age, gender, trailName, hikeLength, packWeight, shelter, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
         [
           event_id,
-          location_id,
           age,
           gender,
           trailName,
@@ -636,9 +743,7 @@ async function addPersonEvent(
       ),
     )
     .then(([results]) => {
-      console.log(
-        `[db] Person created successfully with id: ${results.insertId}`,
-      );
+      return results.insertId;
     });
 }
 
@@ -724,6 +829,13 @@ async function getAllPersonEvents(): Promise<PersonEvent[]> {
 
 async function getLastPersonEvent(): Promise<PersonEvent> {
   console.log('[db] Fetching watersources from the db...');
+  const defaultPersonEvent = {
+    personEvent_id: 0,
+    event_id: 0,
+    age: 0,
+    gender: 0,
+    timestamp: 0,
+  } as PersonEvent;
   return getDatabase()
     .then((db) =>
       // Get all the food, ordered by newest food first
@@ -733,15 +845,12 @@ async function getLastPersonEvent(): Promise<PersonEvent> {
     )
     .then(([results]) => {
       if (results === undefined) {
-        return {
-          personEvent_id: 0,
-          event_id: 0,
-          age: 0,
-          gender: 0,
-          timestamp: 0,
-        } as PersonEvent;
+        return defaultPersonEvent;
       }
       const row = results.rows.item(0);
+      if (row === undefined) {
+        return defaultPersonEvent;
+      }
       const {
         personEvent_id,
         event_id,
@@ -762,9 +871,7 @@ async function getLastPersonEvent(): Promise<PersonEvent> {
         speed,
         location_timestamp,
       } = row;
-      console.log(
-        `[db] PersonEvent title: ${description}, id: ${personEvent_id}`,
-      );
+
       const personEvent: PersonEvent = {
         personEvent_id: personEvent_id as number,
         event_id: event_id,
@@ -800,7 +907,296 @@ async function getLastPersonEvent(): Promise<PersonEvent> {
       if (description) {
         personEvent.description = description;
       }
+      console.log(
+        `[db] PersonEvent title: id: ${personEvent_id} : ${JSON.stringify(
+          personEvent,
+        )}`,
+      );
       return personEvent;
+    });
+}
+
+async function addCampEvent(
+  event_id: number,
+  madeCampAt: number | null,
+  ateDinnerAt: number | null,
+  wentToSleepAt: number | null,
+  setAlarmFor: number | null,
+  gotUpAt: number | null,
+  leftCampAt: number | null,
+  description: string | null,
+): Promise<number> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO CampEvent( event_id, madeCampAt, ateDinnerAt, wentToSleepAt, setAlarmFor, gotUpAt, leftCampAt, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+        [
+          event_id,
+          madeCampAt,
+          ateDinnerAt,
+          wentToSleepAt,
+          setAlarmFor,
+          gotUpAt,
+          leftCampAt,
+          description,
+        ],
+      ),
+    )
+    .then(([results]) => {
+      return results.insertId;
+    });
+}
+
+async function updateCampEvent(
+  campEvent_id: number,
+  madeCampAt: number | null,
+  ateDinnerAt: number | null,
+  wentToSleepAt: number | null,
+  setAlarmFor: number | null,
+  gotUpAt: number | null,
+  leftCampAt: number | null,
+  description: string | null,
+): Promise<void> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'UPDATE CampEvent SET madeCampAt = ?, ateDinnerAt = ?, wentToSleepAt = ?, setAlarmFor = ?, gotUpAt = ?, leftCampAt = ?, description = ? where campEvent_id = ?;',
+        [
+          madeCampAt,
+          ateDinnerAt,
+          wentToSleepAt,
+          setAlarmFor,
+          gotUpAt,
+          leftCampAt,
+          description,
+          campEvent_id,
+        ],
+      ),
+    )
+    .then(([results]) => {
+      console.log(`[db] CampEvent Updated: ${results.rowsAffected}`);
+    });
+}
+
+async function getAllCampEvents(): Promise<CampEvent[]> {
+  console.log('[db] Fetching watersources from the db...');
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql(
+        'SELECT * FROM CampEvent Left JOIN Location ON CampEvent.location_id = Location.location_id ORDER BY campEvent_id DESC;',
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return [];
+      }
+      const count = results.rows.length;
+      const campEvents: CampEvent[] = [];
+      for (let i = 0; i < count; i++) {
+        const row = results.rows.item(i);
+        const {
+          campEvent_id,
+          event_id,
+          location_id,
+          madeCampAt,
+          ateDinnerAt,
+          wentToSleepAt,
+          setAlarmFor,
+          gotUpAt,
+          leftCampAt,
+          description,
+          accuracy,
+          altitude,
+          heading,
+          latitude,
+          longitude,
+          speed,
+          location_timestamp,
+        } = row;
+        console.log(
+          `[db] CampEvent title: ${description}, id: ${campEvent_id}`,
+        );
+        const campEvent: CampEvent = {
+          campEvent_id: campEvent_id,
+          event_id: event_id,
+          madeCampAt: madeCampAt,
+          ateDinnerAt: ateDinnerAt,
+          wentToSleepAt: wentToSleepAt,
+          setAlarmFor: setAlarmFor,
+          gotUpAt: gotUpAt,
+          leftCampAt: leftCampAt,
+          description: description,
+        };
+        if (location_id) {
+          campEvent.location = {
+            location_id,
+            accuracy,
+            altitude,
+            heading,
+            latitude,
+            longitude,
+            speed,
+            location_timestamp,
+          };
+        }
+
+        campEvents.push(campEvent);
+      }
+      return campEvents;
+    });
+}
+
+async function getLastCampEvent(): Promise<CampEvent> {
+  console.log('[db] Fetching watersources from the db...');
+  return getDatabase()
+    .then((db) =>
+      // Get all the food, ordered by newest food first
+      db.executeSql(
+        'SELECT * FROM CampEvent Left JOIN Location ON CampEvent.location_id = Location.location_id ORDER BY campEvent_id DESC LIMIT 1;',
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return {} as CampEvent;
+      }
+      const row = results.rows.item(0);
+      if (row === undefined) {
+        return defaultCampEvent;
+      }
+      const {
+        campEvent_id,
+        event_id,
+        location_id,
+        madeCampAt,
+        ateDinnerAt,
+        wentToSleepAt,
+        setAlarmFor,
+        gotUpAt,
+        leftCampAt,
+        description,
+        accuracy,
+        altitude,
+        heading,
+        latitude,
+        longitude,
+        speed,
+        location_timestamp,
+      } = row;
+      console.log(`[db] CampEvent title: ${description}, id: ${campEvent_id}`);
+      const campEvent: CampEvent = {
+        campEvent_id: campEvent_id,
+        event_id: event_id,
+        madeCampAt: madeCampAt,
+        ateDinnerAt: ateDinnerAt,
+        wentToSleepAt: wentToSleepAt,
+        setAlarmFor: setAlarmFor,
+        gotUpAt: gotUpAt,
+        leftCampAt: leftCampAt,
+        description: description,
+      };
+      if (location_id) {
+        campEvent.location = {
+          location_id,
+          accuracy,
+          altitude,
+          heading,
+          latitude,
+          longitude,
+          speed,
+          location_timestamp,
+        };
+      }
+
+      return campEvent;
+    });
+}
+
+async function addTest(
+  location_id: number,
+  description: string,
+  startedLocation: number,
+  gotLocation: number,
+): Promise<number> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO LocationTest( location_id, description, startedLocation, gotLocation) VALUES (?, ?, ?, ?);',
+        [location_id, description, startedLocation, gotLocation],
+      ),
+    )
+    .then(([results]) => {
+      console.log(
+        `[db] LocationTest created successfully with id: ${results.insertId}`,
+      );
+      return results.insertId;
+    });
+}
+
+function addEventLocation(
+  primaryKey: number,
+  location_id: number | null,
+  tableToUpdate: EventTable,
+): Promise<void> {
+  let sql =
+    'UPDATE [tableName]Event SET location_id=? where [primaryKeyName]Event_id = ?';
+  let tableName: string;
+  switch (tableToUpdate) {
+    case EventTable.foodItem:
+      tableName = 'food';
+      break;
+    case EventTable.meal:
+      tableName = 'meal';
+      break;
+    case EventTable.camp:
+      tableName = 'camp';
+      break;
+    case EventTable.person:
+      tableName = 'person';
+      break;
+    case EventTable.weight:
+      tableName = 'weight';
+      break;
+    case EventTable.waterSource:
+      tableName = 'waterSource';
+      break;
+    case EventTable.genericEventStart:
+      return addGenericEventLocation(primaryKey, location_id, true);
+    case EventTable.genericEventEnd:
+      return addGenericEventLocation(primaryKey, location_id, false);
+    default:
+      console.log(tableToUpdate);
+      return Promise.reject(
+        Error(`Can't add location_id to EventTable: ${EventTable}`),
+      );
+  }
+  sql = sql.replace(
+    '[tableName]',
+    tableName.charAt(0).toUpperCase() + tableName.slice(1),
+  );
+  sql = sql.replace('[primaryKeyName]', tableName);
+  return getDatabase()
+    .then((db) => db.executeSql(sql, [location_id, primaryKey]))
+    .then(([results]) => {
+      console.log(
+        `[db] Add location_id ${location_id}, to table ${tableName} with PK: ${primaryKey}`,
+      );
+    });
+}
+
+function addGenericEventLocation(
+  event_id: number,
+  location_id: number | null,
+  isStart: boolean,
+): Promise<void> {
+  const columnForLocationId = isStart ? 'start_location_id' : 'end_location_id';
+  let sql = `UPDATE EventLog SET ${columnForLocationId}=? where event_id=?`;
+  return getDatabase()
+    .then((db) => db.executeSql(sql, [location_id, event_id]))
+    .then(([results]) => {
+      console.log(
+        `[db] Add ${columnForLocationId}: ${location_id}, to table EventLog with PK: ${event_id}`,
+      );
     });
 }
 
@@ -884,7 +1280,10 @@ export const sqliteDatabase: Database = {
   updateFoodItem,
   deleteMeal,
   logEvent,
-  logFoodEvent,
+  startEvent,
+  endEvent,
+  updateEvent,
+  addFoodEvent,
   getFoodEvents,
   deleteFoodEvent,
   getDefaultLocationSettings,
@@ -898,4 +1297,11 @@ export const sqliteDatabase: Database = {
   addPersonEvent,
   getAllPersonEvents,
   getLastPersonEvent,
+  addCampEvent,
+  getAllCampEvents,
+  getLastCampEvent,
+  updateCampEvent,
+  addTest,
+  addEventLocation,
+  addGenericEventLocation,
 };

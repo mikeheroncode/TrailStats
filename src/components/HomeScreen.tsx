@@ -18,16 +18,12 @@ import { RootStackParamList } from '../types/RootStackParamList';
 
 export const HomeScreen = (props: Props) => {
   const buttonTexts = [
-    { text: 'Home Screen', route: 'Home' as keyof RootStackParamList },
+    { text: 'Record Event', route: 'RecordEvent' as keyof RootStackParamList },
     { text: 'View General Log', route: 'Log' as keyof RootStackParamList },
     { text: 'Add New Item', route: 'EditItem' as keyof RootStackParamList },
     {
       text: 'Record Weight',
       route: 'RecordWeight' as keyof RootStackParamList,
-    },
-    {
-      text: 'Location Settings',
-      route: 'LocationSettings' as keyof RootStackParamList,
     },
     {
       text: 'Record Water Source',
@@ -36,6 +32,14 @@ export const HomeScreen = (props: Props) => {
     {
       text: 'Record Person',
       route: 'RecordPerson' as keyof RootStackParamList,
+    },
+    {
+      text: 'Record Camp Event',
+      route: 'RecordCampEvent' as keyof RootStackParamList,
+    },
+    {
+      text: 'Location Settings',
+      route: 'LocationSettings' as keyof RootStackParamList,
     },
   ];
   const getLocation = () => {

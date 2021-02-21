@@ -16,7 +16,7 @@ export const LocationSettingsProvider: React.FunctionComponent = function (
   const defaultLocationSettings: LocationSettings = {
     includeLocation: true,
     enableHighAccuracy: true,
-    maxTimeout: 15000,
+    maxTimeout: 60000,
     maxAge: 3600 * 60,
   };
   const [locationSettings, setlocationSettings] = useState<LocationSettings>(

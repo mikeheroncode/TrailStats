@@ -1,10 +1,11 @@
 import { useDatabase } from '../context/DatabaseContext';
+import { EventTable } from '../types/EventLog';
+import { useEvent } from './useEvent';
 import { useLocation } from './useLocation';
 
-// Hook for managing and accessing fooditems (CRUD)
 export function useWaterSource() {
   const { addCurrentLocation } = useLocation();
-
+  const { getCurrentEventId } = useEvent();
   const database = useDatabase();
 
   async function addWaterSource(
@@ -12,17 +13,12 @@ export function useWaterSource() {
     accessibility: number,
     description: string,
   ): Promise<void> {
-    const eventId = await database.logEvent('Recorded Weight');
-    const locationId = await addCurrentLocation()
-      .then((id) => id)
-      .catch((error) => null);
-    return database.addWaterSourceEvent(
-      eventId,
-      locationId,
-      flow,
-      accessibility,
-      description,
-    );
+    const eventId = await getCurrentEventId('Water Source');
+    return database
+      .addWaterSourceEvent(eventId, flow, accessibility, description)
+      .then((primaryKey) => {
+        addCurrentLocation(primaryKey, EventTable.waterSource);
+      });
   }
 
   return {

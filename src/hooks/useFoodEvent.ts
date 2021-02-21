@@ -1,18 +1,21 @@
 import { FoodItem } from '../types/FoodItem';
 import { useDatabase } from '../context/DatabaseContext';
-import { FoodEvent } from '../types/FoodEvent';
+import { useLocation } from './useLocation';
+import { EventTable } from '../types/EventLog';
+import { useEvent } from './useEvent';
 
 export function useFoodEvent() {
   const database = useDatabase();
+  const { addCurrentLocation } = useLocation();
+  const { getCurrentEventId } = useEvent();
 
   async function logFoodEvent(foodItem: FoodItem): Promise<void> {
-    const eventId = await database.logEvent('Ate Food');
-    console.log('HERE WE ARE LOGGING A FOOD EVENT');
-    return database.logFoodEvent(
-      eventId,
-      foodItem.food_id,
-      `Ate ${foodItem.name}`,
-    );
+    const eventId = await getCurrentEventId('Ate Food');
+    return database
+      .addFoodEvent(eventId, foodItem.food_id ?? 0, `Ate ${foodItem.name}`)
+      .then((primaryKey) => {
+        addCurrentLocation(primaryKey, EventTable.foodItem);
+      });
   }
 
   return {

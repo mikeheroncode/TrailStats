@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, Pressable, Switch } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Pressable,
+  Switch,
+  TextInput,
+  ToastAndroid,
+} from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDatabase } from '../context/DatabaseContext';
@@ -19,7 +27,7 @@ import { RootStackParamList } from '../types/RootStackParamList';
 import { useLocation } from '../hooks/useLocation';
 
 export const LocationSettings = (props: Props) => {
-  const { locationSettings, updateDefaultLocationSettings } = useLocation();
+  const { locationSettings, setLocationSettings, addTest } = useLocation();
   const [includeLocationEnabled, setIncludeLocationEnabled] = useState(
     locationSettings.includeLocation,
   );
@@ -30,10 +38,23 @@ export const LocationSettings = (props: Props) => {
     setIncludeLocationEnabled((previousState) => !previousState);
   const highAccuracyEnabledToggleSwitch = () =>
     setHighAccuracyEnabled((previousState) => !previousState);
+
+  const [eventName, setEventName] = useState<string>('');
+
+  const locationTest = () => {
+    console.log(`LOCATION SETTINGS: ${JSON.stringify(locationSettings)}`);
+    addTest(eventName);
+    ToastAndroid.show('FINISHED LOCATIONTEST', ToastAndroid.SHORT);
+  };
+  /*
+    setLocationSettings({
+              ...locationSettings,
+              maxTimeout: newValue,
+            });*/
   return (
     <View style={styles.homeScreen}>
       <View style={styles.switchUIContainer}>
-        <Text style={styles.locationSettingsText}>Location For Events</Text>
+        <Text style={styles.labelText}>Location For Events</Text>
         <Switch
           trackColor={{ false: '#767577', true: '#81b0ff' }}
           thumbColor={includeLocationEnabled ? '#f5dd4b' : '#f4f3f4'}
@@ -43,7 +64,7 @@ export const LocationSettings = (props: Props) => {
         />
       </View>
       <View style={styles.switchUIContainer}>
-        <Text style={styles.locationSettingsText}>Enable High Accuracy</Text>
+        <Text style={styles.labelText}>Enable High Accuracy</Text>
         <Switch
           trackColor={{ false: '#767577', true: '#81b0ff' }}
           thumbColor={highAccuracyEnabled ? '#f5dd4b' : '#f4f3f4'}
@@ -53,18 +74,35 @@ export const LocationSettings = (props: Props) => {
         />
       </View>
       <View style={styles.sliderUIContainer}>
-        <Text style={styles.locationSettingsText}>Maximum Timeout</Text>
+        <View style={styles.currentWeightTextContainer}>
+          <Text style={styles.labelText}>Maximum Timeout</Text>
+
+          <TextInput
+            style={styles.smallTextInput}
+            value={String(locationSettings.maxTimeout)}
+            onChangeText={(newValue) => {
+              setLocationSettings({
+                includeLocation: locationSettings.includeLocation,
+                enableHighAccuracy: locationSettings.enableHighAccuracy,
+                maxTimeout: parseInt(newValue, 10),
+                maxAge: locationSettings.maxAge,
+              });
+            }}
+            keyboardType={'numeric'}
+          />
+        </View>
         <Slider
           style={{ width: 300, height: 60 }}
           minimumValue={0}
           maximumValue={1000000}
           step={1000}
+          onValueChange={(newValue) => {}}
           minimumTrackTintColor="#FFFFFF"
           maximumTrackTintColor="#000000"
         />
       </View>
       <View style={styles.sliderUIContainer}>
-        <Text style={styles.locationSettingsText}>Maximum Age</Text>
+        <Text style={styles.labelText}>Maximum Age</Text>
         <Slider
           style={{ width: 300, height: 80 }}
           minimumValue={0}
@@ -75,7 +113,7 @@ export const LocationSettings = (props: Props) => {
         />
       </View>
       <Pressable style={styles.saveSettingsButton} onPress={() => {}}>
-        <Text style={styles.locationSettingsText}>Create</Text>
+        <Text style={styles.labelText}>Create</Text>
       </Pressable>
     </View>
   );
@@ -93,25 +131,38 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   switchUIContainer: {
-    marginVertical: 30,
+    marginVertical: 20,
     display: 'flex',
     flexDirection: 'row',
   },
   sliderUIContainer: {
-    marginVertical: 30,
+    marginVertical: 20,
   },
-  locationSettingsText: {
+  labelText: {
     color: Colors.white,
     fontSize: 25,
     marginRight: 25,
   },
   saveSettingsButton: {
-    width: '40%',
+    width: '60%',
     backgroundColor: Colors.blue,
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
     marginBottom: 10,
+  },
+  currentWeightTextContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  smallTextInput: {
+    backgroundColor: Colors.purpleLight,
+    height: 40,
+    width: 60,
+    borderColor: 'gray',
+    borderWidth: 1,
+    color: Colors.white,
+    marginTop: 5,
   },
 });

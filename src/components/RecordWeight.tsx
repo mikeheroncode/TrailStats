@@ -9,8 +9,6 @@ import {
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useDatabase } from '../context/DatabaseContext';
-import Geolocation from 'react-native-geolocation-service';
 import Slider from '@react-native-community/slider';
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 
@@ -23,7 +21,6 @@ type Props = {
 
 import { Colors } from './Colors';
 import { RootStackParamList } from '../types/RootStackParamList';
-import { useLocationSettings } from '../context/LocationSettingsContext';
 import { useWeightEvent } from '../hooks/useWeightEvents';
 
 export const RecordWeight = (props: Props) => {

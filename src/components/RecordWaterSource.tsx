@@ -24,7 +24,7 @@ export const RecordWaterSource = () => {
     <View style={styles.homeScreen}>
       <View style={styles.sliderUIContainer}>
         <View style={styles.currentWeightTextContainer}>
-          <Text style={styles.locationSettingsText}>Current Weight</Text>
+          <Text style={styles.locationSettingsText}>Flow of Water</Text>
           <TextInput
             style={styles.currentWeightTextInput}
             value={String(flow)}
@@ -47,7 +47,9 @@ export const RecordWaterSource = () => {
       </View>
       <View style={styles.sliderUIContainer}>
         <View style={styles.currentWeightTextContainer}>
-          <Text style={styles.locationSettingsText}>Current Weight</Text>
+          <Text style={styles.locationSettingsText}>
+            Accessibility from trail
+          </Text>
           <TextInput
             style={styles.currentWeightTextInput}
             value={String(accessibility)}

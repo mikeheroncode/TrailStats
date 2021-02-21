@@ -1,14 +1,15 @@
 import { useState, useEffect, useContext } from 'react';
 import { useDatabase } from '../context/DatabaseContext';
+import { EventTable } from '../types/EventLog';
 import { gender, hikeLength, PersonEvent, shelter } from '../types/PersonEvent';
+import { useEvent } from './useEvent';
 import { useLocation } from './useLocation';
 
-// Hook for managing and accessing fooditems (CRUD)
 export function usePersonEvent() {
   const [lastPersonEvent, setPersonEvent] = useState<PersonEvent>();
 
   const { addCurrentLocation } = useLocation();
-
+  const { getCurrentEventId } = useEvent();
   const database = useDatabase();
 
   useEffect(() => {
@@ -29,20 +30,19 @@ export function usePersonEvent() {
     description: string,
     withLastPerson: boolean,
   ): Promise<void> {
+    console.log(`LAST PERSON: ${JSON.stringify(lastPersonEvent)}`);
     withLastPerson = lastPersonEvent === undefined ? false : withLastPerson;
     const eventId = withLastPerson
       ? lastPersonEvent!.event_id
-      : await database.logEvent('Recorded Weight');
-    const locationId = withLastPerson
-      ? lastPersonEvent!.location!.location_id
-      : await addCurrentLocation()
-          .then((id) => id)
-          .catch((error) => null);
+      : await getCurrentEventId('Recorded Person Event');
+    const lastPersonLocationId =
+      !withLastPerson || !lastPersonEvent || !lastPersonEvent.location
+        ? null
+        : lastPersonEvent!.location!.location_id;
 
     return database
       .addPersonEvent(
         eventId,
-        locationId,
         age,
         thisGender,
         trailName,
@@ -51,6 +51,16 @@ export function usePersonEvent() {
         thisShelter,
         description,
       )
+      .then((primaryKey) => {
+        console.log(`LAST PERSON ${JSON.stringify(lastPersonEvent)}`);
+        !withLastPerson
+          ? addCurrentLocation(primaryKey, EventTable.person)
+          : database.addEventLocation(
+              primaryKey,
+              lastPersonLocationId,
+              EventTable.person,
+            );
+      })
       .then(getLastPersonEvent);
   }
 

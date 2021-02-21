@@ -1,10 +1,9 @@
 import { useState, useEffect, useContext } from 'react';
-import { FoodItem } from '../types/FoodItem';
+import { FoodItem, PendingFoodItem } from '../types/FoodItem';
 import { useDatabase } from '../context/DatabaseContext';
 import { Meal } from '../types/Meal';
 import { useFood } from '../context/AllFoodContext';
 
-// Hook for managing and accessing fooditems (CRUD)
 export function useFoodItems() {
   const { foodItems, setFoodItems, meals, setMeals } = useFood();
   const database = useDatabase();
@@ -22,7 +21,7 @@ export function useFoodItems() {
     return database.getAllMeals().then(setMeals);
   }
 
-  function addFoodItem(foodItem: FoodItem): Promise<void> {
+  function addFoodItem(foodItem: PendingFoodItem): Promise<void> {
     return database.addFoodItem(foodItem).then(refreshListOfFoodItems);
   }
 

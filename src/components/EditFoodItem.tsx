@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,13 +6,19 @@ import {
   Pressable,
   TextInput,
   Alert,
+  ScrollView,
 } from 'react-native';
 
 import { Colors } from './Colors';
-import { FoodItem } from '../types/FoodItem';
+import {
+  defaultPendingFoodItem,
+  FoodItem,
+  PendingFoodItem,
+} from '../types/FoodItem';
 import { EditItemTabParamList } from '../types/EditItemTabParamList';
 import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
 import { RouteProp } from '@react-navigation/native';
+import { useFoodItems } from '../hooks/useFoodItems';
 
 type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'EditFoodItem'>;
 
@@ -31,57 +37,136 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
     foodItem: null,
     createNewItem: true,
   };
+  const { name, calories, fat, protein, carbs, sugar, fiber, size } =
+    foodItem ?? defaultPendingFoodItem;
+  const pendingFoodItem: PendingFoodItem = {
+    name,
+    calories,
+    fat,
+    protein,
+    carbs,
+    sugar,
+    fiber,
+    size,
+  };
+  const [foodItemForm, setFoodItemForm] = useState(
+    foodItem ?? defaultPendingFoodItem,
+  );
+
+  const { addFoodItem } = useFoodItems();
+
+  const addNewFoodItem = () => {
+    const newFoodItem: PendingFoodItem = {
+      name: foodItemForm.name,
+      calories: foodItemForm.calories,
+      fat: foodItemForm.fat,
+      protein: foodItemForm.protein,
+      carbs: foodItemForm.carbs,
+      sugar: foodItemForm.sugar,
+      fiber: foodItemForm.fiber,
+      size: foodItemForm.size,
+    };
+    addFoodItem(newFoodItem);
+  };
 
   return (
     <View style={styles.editItemScreen}>
-      <View style={styles.editItemForm}>
+      <ScrollView style={styles.editItemForm}>
         <Text style={styles.editItemLabels}>Name</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.name ?? '')}
+          value={String(foodItemForm.name ?? '')}
+          onChangeText={(newValue) => {
+            setFoodItemForm({ ...foodItemForm, name: newValue });
+          }}
         />
         <Text style={styles.editItemLabels}>Calories</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.calories ?? '')}
+          value={
+            isNaN(foodItemForm.calories) ? '' : String(foodItemForm.calories)
+          }
+          onChangeText={(newValue) => {
+            const newValueInt = parseInt(newValue, 10);
+            setFoodItemForm({ ...foodItemForm, calories: newValueInt });
+          }}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Fat</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.fat ?? '')}
+          value={isNaN(foodItemForm.fat) ? '' : String(foodItemForm.fat)}
+          onChangeText={(newValue) => {
+            const newValueInt = parseInt(newValue, 10);
+            setFoodItemForm({ ...foodItemForm, fat: newValueInt });
+          }}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Protien</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.protein ?? '')}
+          value={
+            isNaN(foodItemForm.protein) ? '' : String(foodItemForm.protein)
+          }
+          onChangeText={(newValue) => {
+            const newValueInt = parseInt(newValue, 10);
+            setFoodItemForm({ ...foodItemForm, protein: newValueInt });
+          }}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Carbs</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.carbs ?? '')}
+          value={isNaN(foodItemForm.carbs) ? '' : String(foodItemForm.carbs)}
+          onChangeText={(newValue) => {
+            const newValueInt = parseInt(newValue, 10);
+            setFoodItemForm({ ...foodItemForm, carbs: newValueInt });
+          }}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Sugar</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.sugar ?? '')}
+          value={isNaN(foodItemForm.sugar) ? '' : String(foodItemForm.sugar)}
+          onChangeText={(newValue) => {
+            const newValueInt = parseInt(newValue, 10);
+            setFoodItemForm({ ...foodItemForm, sugar: newValueInt });
+          }}
           keyboardType={'numeric'}
         />
         <Text style={styles.editItemLabels}>Fiber</Text>
         <TextInput
           style={styles.editItemFormTextInput}
-          value={createNewItem ? '' : String(foodItem?.fiber ?? '')}
+          value={isNaN(foodItemForm.fiber) ? '' : String(foodItemForm.fiber)}
+          onChangeText={(newValue) => {
+            const newValueInt = parseInt(newValue, 10);
+            setFoodItemForm({ ...foodItemForm, fiber: newValueInt });
+          }}
+          keyboardType={'numeric'}
+        />
+        <Text style={styles.editItemLabels}>Size</Text>
+        <TextInput
+          style={styles.editItemFormTextInput}
+          value={isNaN(foodItemForm.size) ? '' : String(foodItemForm.size)}
+          onChangeText={(newValue) => {
+            const newValueInt = parseInt(newValue, 10);
+            setFoodItemForm({ ...foodItemForm, size: newValueInt });
+          }}
           keyboardType={'numeric'}
         />
         <Pressable
-          onPress={() => Alert.alert('Item Added')}
-          style={styles.addItemButton}>
+          onPress={() => addNewFoodItem()}
+          style={({ pressed }) => [
+            {
+              backgroundColor: pressed
+                ? 'rgb(210, 230, 255)'
+                : Colors.purpleLight,
+            },
+            styles.addItemButton,
+          ]}>
           <Text style={styles.homeButtonText}>{'Add Item'}</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -115,7 +200,6 @@ const styles = StyleSheet.create({
     width: '65%',
     height: 50,
     marginTop: 20,
-    backgroundColor: Colors.purpleLight,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',

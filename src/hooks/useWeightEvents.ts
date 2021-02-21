@@ -1,9 +1,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { useDatabase } from '../context/DatabaseContext';
+import { EventTable } from '../types/EventLog';
 import { WeightEvent } from '../types/WeightEvent';
+import { useEvent } from './useEvent';
 import { useLocation } from './useLocation';
 
-// Hook for managing and accessing fooditems (CRUD)
 export function useWeightEvent() {
   const [lastWeightEvent, setLastWeightEvent] = useState<WeightEvent>({
     weightEvent_id: 0,
@@ -14,7 +15,7 @@ export function useWeightEvent() {
   } as WeightEvent);
 
   const { addCurrentLocation } = useLocation();
-
+  const { getCurrentEventId } = useEvent();
   const database = useDatabase();
 
   useEffect(() => {
@@ -26,16 +27,15 @@ export function useWeightEvent() {
   }
 
   async function addWeightEvent(
-    location_id: number | null,
     description: string,
     weight: number,
   ): Promise<void> {
-    const eventId = await database.logEvent('Recorded Weight');
-    const locationId = addCurrentLocation()
-      .then((id) => id)
-      .catch((error) => null);
+    const eventId = await getCurrentEventId('Recorded Weight');
     return database
-      .addWeightEvent(eventId, locationId, description, weight)
+      .addWeightEvent(eventId, description, weight)
+      .then((primaryKey) => {
+        addCurrentLocation(primaryKey, EventTable.weight);
+      })
       .then(getLastWeightEvent);
   }
 

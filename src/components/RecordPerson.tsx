@@ -27,7 +27,7 @@ export const RecordPerson = () => {
   const [talkedTo, setTalkedTo] = useState<boolean>(false);
   const [wasWithLastPerson, setWasWithLastPerson] = useState<boolean>(false);
   const [age, setAge] = useState<number>(25);
-  const [packWeight, setPackWeight] = useState<number>(25);
+  const [packWeight, setPackWeight] = useState<number>(0);
   const [trailName, setTrailName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const recordPersonEvent = () => {

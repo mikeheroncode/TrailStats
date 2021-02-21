@@ -6,4 +6,6 @@ export type RootStackParamList = {
   RecordWeight: undefined;
   RecordPerson: undefined;
   RecordWaterSource: undefined;
+  RecordCampEvent: undefined;
+  RecordEvent: undefined;
 };
