@@ -44,6 +44,11 @@ export interface Database {
     food_id: number,
     eventName: string,
   ): Promise<number>;
+  addMealEvent(
+    eventId: number,
+    food_id: number,
+    eventName: string,
+  ): Promise<number>;
   deleteFoodEvent(event: FoodEvent): Promise<void>;
   //getAllEvents(): Promise<EventLog>;
   getFoodEvents(): Promise<FoodEvent[]>;
@@ -256,6 +261,23 @@ async function addFoodEvent(
       db.executeSql(
         'INSERT INTO FoodEvent (event_id, food_id, name) VALUES (?, ?, ?);',
         [eventId, food_id, eventName],
+      ),
+    )
+    .then(([results]) => {
+      return results.insertId;
+    });
+}
+
+async function addMealEvent(
+  eventId: number,
+  meal_id: number,
+  eventName: string,
+): Promise<number> {
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        'INSERT INTO MealEvent (event_id, meal_id, name) VALUES (?, ?, ?);',
+        [eventId, meal_id, eventName],
       ),
     )
     .then(([results]) => {
@@ -1378,4 +1400,5 @@ export const sqliteDatabase: Database = {
   getAllUnifiedEventLogItems,
   deleteEventFromLog,
   deleteEntityEventFromLog,
+  addMealEvent,
 };

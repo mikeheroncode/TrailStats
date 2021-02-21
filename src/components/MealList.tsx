@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable } from 'react-native';
+import { FlatList, Pressable, ToastAndroid } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors } from './Colors';
 import { RouteProp } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tab
 import { useMealEvent } from '../hooks/useMealEvent';
 import { MealTile } from './MealTile';
 import { useFoodItems } from '../hooks/useFoodItems';
+import { Meal } from '../types/Meal';
 
 type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'FoodItems'>;
 
@@ -22,12 +23,20 @@ type Props = {
 };
 
 export const MealList = ({ route, navigation }: Props) => {
-  const { logMealEvent } = useMealEvent();
+  const { addMealEvent } = useMealEvent();
   const [selectedFoodItems, setSelectedFoodItems] = useState<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const { meals } = useFoodItems();
-  console.log(meals);
-  console.log('MEALS^^^^');
+
+  const showToast = (message: string) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  };
+
+  const onMealLongPress = (item: Meal) => {
+    addMealEvent(item);
+    showToast(`Added ${item.name}`);
+  };
+
   return (
     <View style={styles.editItemScreen}>
       <FlatList
@@ -41,12 +50,19 @@ export const MealList = ({ route, navigation }: Props) => {
                   )
                 : setSelectedFoodItems([...selectedFoodItems, item.meal_id])
             }
-            onLongPress={() => logMealEvent(item)}
-            style={
+            onLongPress={() => onMealLongPress(item)}
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed
+                  ? 'rgb(210, 230, 255)'
+                  : selectedFoodItems.includes(item.meal_id)
+                  ? Colors.black
+                  : Colors.purpleLight,
+              },
               selectedFoodItems.includes(item.meal_id)
                 ? styles.selectedAddItemButton
-                : styles.addMealButton
-            }>
+                : styles.addItemButton,
+            ]}>
             <MealTile
               meal={item}
               isSelected={selectedFoodItems.includes(item.meal_id)}
