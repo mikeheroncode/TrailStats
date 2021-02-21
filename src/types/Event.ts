@@ -1,6 +1,6 @@
 import { Location } from './Location';
 
-export type Event = {
+export interface Event {
   event_id: number;
   name: Text;
   isSingleEvent: boolean;
@@ -8,7 +8,7 @@ export type Event = {
   endTimestamp?: number;
   startLocation?: Location;
   endLocation?: Location;
-};
+}
 
 export const defaultEvent: Event = {
   event_id: 0,

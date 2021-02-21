@@ -10,6 +10,7 @@ import { WaterSourceEvent } from '../types/WaterSourceEvent';
 import { PersonEvent } from '../types/PersonEvent';
 import { Location } from '../types/Location';
 import { CampEvent, defaultCampEvent } from '../types/CampEvent';
+import { UnifiedEventLogItem } from '../types/UnifiedEventLogItem';
 
 export interface Database {
   // Create
@@ -126,6 +127,7 @@ export interface Database {
     location_id: number | null,
     tableToUpdate: EventTable,
   ): Promise<void>;
+  getAllUnifiedEventLogItems(): Promise<UnifiedEventLogItem[]>;
 }
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
@@ -165,9 +167,13 @@ async function addIngredient(
 }
 
 async function logEvent(eventName: string): Promise<number> {
+  const insertTime = new Date();
   return getDatabase()
     .then((db) =>
-      db.executeSql('INSERT INTO EventLog (name) VALUES (?);', [eventName]),
+      db.executeSql(
+        'INSERT INTO EventLog (name, start_timestamp, end_timestamp) VALUES (?, ?, ?);',
+        [eventName, +insertTime, +insertTime],
+      ),
     )
     .then(([results]) => {
       const { insertId } = results;
@@ -1200,6 +1206,48 @@ function addGenericEventLocation(
     });
 }
 
+function getAllUnifiedEventLogItems(): Promise<UnifiedEventLogItem[]> {
+  console.log('[db] Fetching food from the db...');
+  return getDatabase()
+    .then((db) =>
+      db.executeSql(
+        "SELECT * FROM UnifiedEventLog WHERE start_timestamp >= ((strftime('%s', 'now') - (60 * 60 * 24 * 10)) * 1000)  ORDER BY event_id DESC;",
+      ),
+    )
+    .then(([results]) => {
+      if (results === undefined) {
+        return [];
+      }
+
+      const count = results.rows.length;
+      const unifiedEventLogItems: UnifiedEventLogItem[] = [];
+      for (let i = 0; i < count; i++) {
+        const row = results.rows.item(i);
+        const {
+          event_class,
+          id,
+          event_id,
+          name,
+          start_timestamp,
+          end_timestamp,
+          isSingleEvent,
+        } = row;
+        console.log(JSON.stringify(row));
+        console.log(`[db] Event Log Item title: ${name}, id: ${event_id}`);
+        unifiedEventLogItems.push({
+          eventClass: event_class,
+          entity_id: id,
+          event_id: event_id,
+          name: name,
+          startTimestamp: start_timestamp,
+          endTimestamp: end_timestamp,
+          isSingleEvent: isSingleEvent,
+        });
+      }
+      return unifiedEventLogItems;
+    });
+}
+
 // "Private" helpers
 
 async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -1301,7 +1349,7 @@ export const sqliteDatabase: Database = {
   getAllCampEvents,
   getLastCampEvent,
   updateCampEvent,
-  addTest,
   addEventLocation,
   addGenericEventLocation,
+  getAllUnifiedEventLogItems,
 };

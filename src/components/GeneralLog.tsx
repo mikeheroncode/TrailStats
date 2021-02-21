@@ -4,6 +4,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Colors } from './Colors';
 import { useEventLog } from '../hooks/useEventLog';
 import { FoodEventTile } from './FoodEventTile';
+import { UnifiedEventLogItemTile } from './UnifiedEventLogItemTile';
 
 export const GeneralLog = (props: Props) => {
   const {
@@ -11,7 +12,10 @@ export const GeneralLog = (props: Props) => {
     setFoodEvents,
     refreshListOfEvents,
     deleteFoodEvent,
+    getAllEventsFromLog,
+    eventLogItems,
   } = useEventLog();
+
   return (
     <View style={styles.container}>
       <Pressable
@@ -20,15 +24,13 @@ export const GeneralLog = (props: Props) => {
         <Text>Refresh</Text>
       </Pressable>
       <FlatList
-        data={foodEvents}
+        data={eventLogItems}
         renderItem={({ item }) => (
           <Pressable
             onPress={() => {}}
-            onLongPress={() => {
-              deleteFoodEvent(item);
-            }}
+            onLongPress={() => {}}
             style={styles.addItemButton}>
-            <FoodEventTile foodEvent={item} isSelected={false} />
+            <UnifiedEventLogItemTile unifiedEvent={item} isSelected={false} />
           </Pressable>
         )}
         keyExtractor={(item, index) => index.toString()}
