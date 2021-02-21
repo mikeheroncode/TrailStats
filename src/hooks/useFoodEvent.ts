@@ -12,7 +12,7 @@ export function useFoodEvent() {
   async function logFoodEvent(foodItem: FoodItem): Promise<void> {
     const eventId = await getCurrentEventId('Ate Food');
     return database
-      .addFoodEvent(eventId, foodItem.food_id ?? 0, `Ate ${foodItem.name}`)
+      .addFoodEvent(eventId, foodItem.food_id, `Ate ${foodItem.name}`)
       .then((primaryKey) => {
         addCurrentLocation(primaryKey, EventTable.foodItem);
       });

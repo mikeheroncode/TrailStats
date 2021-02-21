@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { FlatList, Modal, Pressable, TextInput } from 'react-native';
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  TextInput,
+  ToastAndroid,
+} from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors } from './Colors';
 import { RouteProp } from '@react-navigation/native';
@@ -8,6 +14,7 @@ import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tab
 import { FoodItemTile } from './FoodItemTile';
 import { useFoodEvent } from '../hooks/useFoodEvent';
 import { useFoodItems } from '../hooks/useFoodItems';
+import { FoodItem } from '../types/FoodItem';
 
 type FoodItemListRouteProp = RouteProp<EditItemTabParamList, 'FoodItems'>;
 
@@ -32,6 +39,15 @@ export const FoodItemList = ({ route, navigation }: Props) => {
     addMeal(newMealName, selectedFoodItems);
     setModalVisible(false);
     setSelectedFoodItems([]);
+  };
+
+  const showToast = (message: string) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  };
+
+  const onFoodItemLongPress = (item: FoodItem) => {
+    logFoodEvent(item);
+    showToast(`Added ${item.name}`);
   };
   return (
     <View style={styles.editItemScreen}>
@@ -79,12 +95,19 @@ export const FoodItemList = ({ route, navigation }: Props) => {
                   )
                 : setSelectedFoodItems([...selectedFoodItems, item.food_id])
             }
-            onLongPress={() => logFoodEvent(item)}
-            style={
+            onLongPress={() => onFoodItemLongPress(item)}
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed
+                  ? 'rgb(210, 230, 255)'
+                  : selectedFoodItems.includes(item.food_id)
+                  ? Colors.black
+                  : Colors.purpleLight,
+              },
               selectedFoodItems.includes(item.food_id)
                 ? styles.selectedAddItemButton
-                : styles.addItemButton
-            }>
+                : styles.addItemButton,
+            ]}>
             <FoodItemTile
               foodItem={item}
               isSelected={selectedFoodItems.includes(item.food_id)}
@@ -116,7 +139,6 @@ const styles = StyleSheet.create({
   addItemButton: {
     width: '90%',
     marginTop: 5,
-    backgroundColor: Colors.purpleLight,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -137,7 +159,6 @@ const styles = StyleSheet.create({
   selectedAddItemButton: {
     width: '90%',
     marginTop: 5,
-    backgroundColor: Colors.black,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
