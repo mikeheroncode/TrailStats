@@ -14,12 +14,13 @@ export const GeneralLog = (props: Props) => {
     deleteFoodEvent,
     getAllEventsFromLog,
     eventLogItems,
+    deleteEvent,
   } = useEventLog();
 
   return (
     <View style={styles.container}>
       <Pressable
-        onPress={() => refreshListOfEvents}
+        onPress={() => getAllEventsFromLog()}
         style={styles.addItemButton}>
         <Text>Refresh</Text>
       </Pressable>
@@ -28,7 +29,9 @@ export const GeneralLog = (props: Props) => {
         renderItem={({ item }) => (
           <Pressable
             onPress={() => {}}
-            onLongPress={() => {}}
+            onLongPress={() => {
+              deleteEvent(item);
+            }}
             style={styles.addItemButton}>
             <UnifiedEventLogItemTile unifiedEvent={item} isSelected={false} />
           </Pressable>

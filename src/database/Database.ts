@@ -128,6 +128,8 @@ export interface Database {
     tableToUpdate: EventTable,
   ): Promise<void>;
   getAllUnifiedEventLogItems(): Promise<UnifiedEventLogItem[]>;
+  deleteEventFromLog(event_id: number): Promise<void>;
+  deleteEntityEventFromLog(entity_id: number, tableName: string): Promise<void>;
 }
 
 let databaseInstance: SQLite.SQLiteDatabase | undefined;
@@ -1248,6 +1250,28 @@ function getAllUnifiedEventLogItems(): Promise<UnifiedEventLogItem[]> {
     });
 }
 
+function deleteEntityEventFromLog(
+  entity_id: number,
+  tableName: string,
+): Promise<void> {
+  const primaryKey = tableName.charAt(0).toLowerCase() + tableName.slice(1);
+  const entityEventDeleteSql = `DELETE FROM ${tableName}Event where ${primaryKey}Event_id = ?;`;
+  return getDatabase()
+    .then((db) => db.executeSql(entityEventDeleteSql, [entity_id]))
+    .then(([results]) => {
+      console.log(`[db] Deleted from ${tableName} PK: ${entity_id}`);
+    });
+}
+
+function deleteEventFromLog(event_id: number): Promise<void> {
+  const entityEventDeleteSql = 'DELETE FROM EventLog where event_id = ?;';
+  return getDatabase()
+    .then((db) => db.executeSql(entityEventDeleteSql, [event_id]))
+    .then(([results]) => {
+      console.log(`[db] Deleted from EventLog PK: ${event_id}`);
+    });
+}
+
 // "Private" helpers
 
 async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -1352,4 +1376,6 @@ export const sqliteDatabase: Database = {
   addEventLocation,
   addGenericEventLocation,
   getAllUnifiedEventLogItems,
+  deleteEventFromLog,
+  deleteEntityEventFromLog,
 };

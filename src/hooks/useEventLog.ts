@@ -23,6 +23,20 @@ export function useEventLog() {
   async function getAllEventsFromLog() {
     return database.getAllUnifiedEventLogItems().then(setEventLogItems);
   }
+
+  async function deleteEvent(logItemToDelete: UnifiedEventLogItem) {
+    return database
+      .deleteEntityEventFromLog(
+        logItemToDelete.entity_id,
+        logItemToDelete.eventClass,
+      )
+      .then(() => {
+        if (logItemToDelete.isSingleEvent) {
+          return database.deleteEventFromLog(logItemToDelete.event_id);
+        }
+      })
+      .then(getAllEventsFromLog);
+  }
   return {
     foodEvents,
     setFoodEvents,
@@ -30,5 +44,6 @@ export function useEventLog() {
     deleteFoodEvent,
     getAllEventsFromLog,
     eventLogItems,
+    deleteEvent,
   };
 }
