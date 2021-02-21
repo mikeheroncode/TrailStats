@@ -1,0 +1,237 @@
+
+      CREATE TABLE IF NOT EXISTS Gear(
+        item_id INTEGER PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        weight REAL NOT NULL,
+        price REAL NOT NULL,
+        link TEXT,
+        purchasedFrom TEXT,
+        addedAt Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        sentBack addedAt Timestamp DATETIME DEFAULT NULL
+      );
+    
+      CREATE TABLE IF NOT EXISTS FoodItem(
+        food_id INTEGER PRIMARY KEY NOT NULL,
+        name TEXT,
+        calories INTEGER NOT NULL,
+        fat INTEGER NOT NULL,
+        protein INTEGER NOT NULL,
+        carbs INTEGER NOT NULL,
+        sugar INTEGER NOT NULL,
+        fiber INTEGER NOT NULL,
+        size INTEGER NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        addedAt Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    
+      CREATE TABLE IF NOT EXISTS Meal(
+        meal_id INTEGER PRIMARY KEY NOT NULL,
+        name TEXT,
+        active INTEGER NOT NULL DEFAULT 1,
+        addedAt Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+    
+      CREATE TABLE IF NOT EXISTS Ingredient(
+        ingredient_id INTEGER PRIMARY KEY NOT NULL,
+        meal_id INTERGER NOT NULL,
+        food_id INTERGER NOT NULL,
+        FOREIGN KEY ( meal_id ) REFERENCES Meals ( meal_id ),
+        FOREIGN KEY ( food_id ) REFERENCES FoodItem ( food_id )
+      );
+    
+      CREATE TABLE IF NOT EXISTS EventLog(
+        event_id INTEGER PRIMARY KEY NOT NULL,
+        name TEXT,
+        start_location_id INTEGER,
+        end_location_id INTEGER,
+        start_timestamp INTEGER,
+        end_timestamp INTEGER,
+        isSingleEvent INTEGER,
+        FOREIGN KEY ( start_location_id ) REFERENCES Location ( location_id ),
+        FOREIGN KEY ( end_location_id ) REFERENCES Location ( location_id )
+      );
+    
+      CREATE TABLE IF NOT EXISTS FoodEvent(
+        foodEvent_id INTEGER PRIMARY KEY NOT NULL,
+        event_id INTEGER NOT NULL,
+        food_id INTEGER NOT NULL,
+        location_id INTEGER,
+        name TEXT,
+        timestamp Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY ( food_id ) REFERENCES Food ( food_id ),
+        FOREIGN KEY ( event_id ) REFERENCES EventLog ( event_id ),
+        FOREIGN KEY ( location_id ) REFERENCES Location ( location_id )
+      );
+
+      CREATE TABLE IF NOT EXISTS MealEvent(
+        mealEvent_id INTEGER PRIMARY KEY NOT NULL,
+        event_id INTEGER NOT NULL,
+        meal_id INTEGER NOT NULL,
+        location_id INTEGER,
+        name TEXT,
+        timestamp Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY ( meal_id ) REFERENCES mood ( meal_id ),
+        FOREIGN KEY ( event_id ) REFERENCES EventLog ( event_id ),
+        FOREIGN KEY ( location_id ) REFERENCES Location ( location_id )
+      );
+
+      CREATE TABLE IF NOT EXISTS PersonEvent(
+        personEvent_id INTEGER PRIMARY KEY NOT NULL,
+        event_id INTEGER NOT NULL,
+        location_id INTEGER,
+        age INTEGER NOT NULL,
+        gender INTEGER NOT NULL,
+        trailName TEXT,
+        hikeLength INTEGER,
+        packWeight INTEGER,
+        shelter INTEGER,
+        description TEXT,
+        timestamp Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY ( event_id ) REFERENCES EventLog ( event_id ),
+        FOREIGN KEY ( location_id ) REFERENCES Location ( location_id )
+      );    
+
+      CREATE TABLE IF NOT EXISTS WeightEvent(
+        weightEvent_id INTEGER PRIMARY KEY NOT NULL,
+        event_id INTEGER NOT NULL,
+        location_id INTEGER,
+        description TEXT,
+        weight INTEGER NOT NULL,
+        timestamp Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY ( event_id ) REFERENCES EventLog ( event_id ),
+        FOREIGN KEY ( location_id ) REFERENCES Location ( location_id )
+      );
+
+      CREATE TABLE IF NOT EXISTS Location(
+        location_id INTEGER PRIMARY KEY NOT NULL,
+        accuracy REAL NOT NULL,
+        altitude REAL NOT NULL,
+        heading REAL NOT NULL,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        speed REAL NOT NULL,
+        location_timestamp INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS LocationSettings(
+        locationSettings_id INTEGER PRIMARY KEY NOT NULL,
+        includeLocation INTEGER NOT NULL,
+        enableHighAccuracy INTEGER NOT NULL,
+        maxTimeout INTEGER NOT NULL,
+        maxAge INTEGER NOT NULL,
+        timestamp Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS WaterSourceEvent(
+        waterSourceEvent_id INTEGER PRIMARY KEY NOT NULL,
+        event_id INTEGER NOT NULL,
+        location_id INTEGER,
+        flow INTEGER NOT NULL,
+        accessibility INTEGER NOT NULL,
+        description TEXT,
+        timestamp Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY ( event_id ) REFERENCES EventLog ( event_id ),
+        FOREIGN KEY ( location_id ) REFERENCES Location ( location_id )
+      );
+
+      CREATE TABLE IF NOT EXISTS CampEvent(
+        campEvent_id INTEGER PRIMARY KEY NOT NULL,
+        event_id INTEGER NOT NULL,
+        location_id INTEGER,
+        madeCampAt INTEGER DATETIME,
+        ateDinnerAt INTEGER DATETIME,
+        wentToSleepAt INTEGER DATETIME,
+        setAlarmFor INTEGER DATETIME,
+        gotUpAt INTEGER DATETIME,
+        leftCampAt INTEGER DATETIME,
+        description TEXT,
+        FOREIGN KEY ( event_id ) REFERENCES EventLog ( event_id ),
+        FOREIGN KEY ( location_id ) REFERENCES Location ( location_id )
+      );
+
+      CREATE TABLE IF NOT EXISTS BreakEvent(
+        breakEvent_id INTEGER PRIMARY KEY NOT NULL,
+        event_id INTEGER NOT NULL,
+        location_id INTEGER,
+        startedBreakAt Timestamp DATETIME,
+        endedBreakAt Timestamp DATETIME,
+        plannedLengthOfBreak Timestamp DATETIME,
+        didStretches INTEGER NOT NULL DEFAULT 0,
+        description TEXT,
+        FOREIGN KEY ( event_id ) REFERENCES EventLog ( event_id ),
+        FOREIGN KEY ( location_id ) REFERENCES Location ( location_id )
+      );
+    
+      CREATE TABLE IF NOT EXISTS Version(
+        version_id INTEGER PRIMARY KEY NOT NULL,
+        version INTEGER
+      );
+
+      CREATE VIEW IF NOT EXISTS UnifiedEventLog AS
+  SELECT 'Camp' AS event_class,
+         CE.campEvent_id AS id,
+         EL.event_id,
+         CE.description AS name,
+         EL.start_timestamp,
+         EL.end_timestamp,
+         EL.isSingleEvent
+      FROM CampEvent AS CE
+      LEFT JOIN EventLog AS EL
+        ON (CE.event_id = EL.event_id)
+  UNION ALL
+  SELECT 'Food' AS event_class,
+         FE.foodEvent_id AS id,
+         EL.event_id,
+         FE.name,
+         EL.start_timestamp,
+         EL.end_timestamp,
+         EL.isSingleEvent
+      FROM FoodEvent AS FE
+      LEFT JOIN EventLog AS EL
+        ON (FE.event_id = EL.event_id)
+  UNION ALL
+  SELECT 'Meal' AS event_class,
+         ME.mealEvent_id AS id,
+         EL.event_id,
+         ME.name,
+         EL.start_timestamp,
+         EL.end_timestamp,
+         EL.isSingleEvent
+      FROM MealEvent AS ME
+      LEFT JOIN EventLog AS EL
+        ON (ME.event_id = EL.event_id)
+  UNION ALL
+  SELECT 'Person' AS event_class,
+         PE.personEvent_id AS id,
+         EL.event_id,
+         PE.trailName AS name,
+         EL.start_timestamp,
+         EL.end_timestamp,
+         EL.isSingleEvent
+      FROM PersonEvent AS PE
+      LEFT JOIN EventLog AS EL
+        ON (PE.event_id = EL.event_id)
+  UNION ALL
+  SELECT 'WaterSource' AS event_class,
+         WSE.waterSourceEvent_id AS id,
+         EL.event_id,
+         WSE.description AS name,
+         EL.start_timestamp,
+         EL.end_timestamp,
+         EL.isSingleEvent
+      FROM WaterSourceEvent AS WSE
+      LEFT JOIN EventLog AS EL
+        ON (WSE.event_id = EL.event_id)
+  UNION ALL
+  SELECT 'Weight' AS event_class,
+         WE.weightEvent_id AS id,
+         EL.event_id,
+         WE.description AS name,
+         EL.start_timestamp,
+         EL.end_timestamp,
+         EL.isSingleEvent
+      FROM WeightEvent AS WE
+      LEFT JOIN EventLog AS EL
+        ON (WE.event_id = EL.event_id)
+    
