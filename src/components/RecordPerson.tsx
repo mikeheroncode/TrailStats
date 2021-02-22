@@ -6,6 +6,7 @@ import {
   Pressable,
   Switch,
   TextInput,
+  ToastAndroid,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 
@@ -30,7 +31,8 @@ export const RecordPerson = () => {
   const [packWeight, setPackWeight] = useState<number>(0);
   const [trailName, setTrailName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const recordPersonEvent = () => {
+  const recordPersonEvent = async () => {
+    await getLastPersonEvent();
     if (talkedTo) {
       addPersonEvent(
         age,
@@ -42,6 +44,7 @@ export const RecordPerson = () => {
         description,
         wasWithLastPerson,
       );
+      showToast('New Person Event');
     } else {
       addPersonEvent(
         age,
@@ -53,8 +56,13 @@ export const RecordPerson = () => {
         description,
         wasWithLastPerson,
       );
+      showToast('New Person Event');
     }
   };
+  const showToast = (message: string) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  };
+
   return (
     <View style={styles.homeScreen}>
       <ScrollView style={styles.scroll}>
@@ -148,7 +156,12 @@ export const RecordPerson = () => {
           />
         </View>
         <Pressable
-          style={styles.saveSettingsButton}
+          style={({ pressed }) => [
+            {
+              backgroundColor: pressed ? 'rgb(210, 230, 255)' : Colors.blue,
+            },
+            styles.saveSettingsButton,
+          ]}
           onPress={() => {
             recordPersonEvent();
           }}>
@@ -195,7 +208,6 @@ const styles = StyleSheet.create({
   },
   saveSettingsButton: {
     width: '60%',
-    backgroundColor: Colors.blue,
     alignItems: 'center',
     padding: 15,
     alignSelf: 'center',

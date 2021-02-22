@@ -75,6 +75,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Name</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={String(foodItemForm.name ?? '')}
           onChangeText={(newValue) => {
             setFoodItemForm({ ...foodItemForm, name: newValue });
@@ -83,6 +84,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Calories</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={
             isNaN(foodItemForm.calories) ? '' : String(foodItemForm.calories)
           }
@@ -95,6 +97,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Fat</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={isNaN(foodItemForm.fat) ? '' : String(foodItemForm.fat)}
           onChangeText={(newValue) => {
             const newValueInt = parseInt(newValue, 10);
@@ -105,6 +108,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Protien</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={
             isNaN(foodItemForm.protein) ? '' : String(foodItemForm.protein)
           }
@@ -117,6 +121,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Carbs</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={isNaN(foodItemForm.carbs) ? '' : String(foodItemForm.carbs)}
           onChangeText={(newValue) => {
             const newValueInt = parseInt(newValue, 10);
@@ -127,6 +132,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Sugar</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={isNaN(foodItemForm.sugar) ? '' : String(foodItemForm.sugar)}
           onChangeText={(newValue) => {
             const newValueInt = parseInt(newValue, 10);
@@ -137,6 +143,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Fiber</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={isNaN(foodItemForm.fiber) ? '' : String(foodItemForm.fiber)}
           onChangeText={(newValue) => {
             const newValueInt = parseInt(newValue, 10);
@@ -147,6 +154,7 @@ export const EditFoodItem = ({ route, navigation }: Props) => {
         <Text style={styles.editItemLabels}>Size</Text>
         <TextInput
           style={styles.editItemFormTextInput}
+          selectTextOnFocus={true}
           value={isNaN(foodItemForm.size) ? '' : String(foodItemForm.size)}
           onChangeText={(newValue) => {
             const newValueInt = parseInt(newValue, 10);

@@ -6,6 +6,7 @@ import {
   Pressable,
   Switch,
   TextInput,
+  ToastAndroid,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 
@@ -19,6 +20,7 @@ export const RecordWaterSource = () => {
   const [description, setDescription] = useState<string>('');
   const recordWaterSource = () => {
     addWaterSource(flow, accessibility, 'Added Water Source');
+    ToastAndroid.show('Added Water Source', ToastAndroid.SHORT);
   };
   return (
     <View style={styles.homeScreen}>
@@ -77,7 +79,12 @@ export const RecordWaterSource = () => {
         value={description}
       />
       <Pressable
-        style={styles.saveSettingsButton}
+        style={({ pressed }) => [
+          {
+            backgroundColor: pressed ? 'rgb(210, 230, 255)' : Colors.blue,
+          },
+          styles.saveSettingsButton,
+        ]}
         onPress={() => {
           recordWaterSource();
         }}>
@@ -118,7 +125,6 @@ const styles = StyleSheet.create({
   },
   saveSettingsButton: {
     width: '40%',
-    backgroundColor: Colors.blue,
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',

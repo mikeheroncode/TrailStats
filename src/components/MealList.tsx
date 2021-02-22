@@ -26,7 +26,7 @@ export const MealList = ({ route, navigation }: Props) => {
   const { addMealEvent } = useMealEvent();
   const [selectedFoodItems, setSelectedFoodItems] = useState<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const { meals } = useFoodItems();
+  const { meals, deleteMeal } = useFoodItems();
 
   const showToast = (message: string) => {
     ToastAndroid.show(message, ToastAndroid.SHORT);
@@ -50,7 +50,11 @@ export const MealList = ({ route, navigation }: Props) => {
                   )
                 : setSelectedFoodItems([...selectedFoodItems, item.meal_id])
             }
-            onLongPress={() => onMealLongPress(item)}
+            onLongPress={() =>
+              selectedFoodItems.includes(item.meal_id)
+                ? deleteMeal(item)
+                : onMealLongPress(item)
+            }
             style={({ pressed }) => [
               {
                 backgroundColor: pressed

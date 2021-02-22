@@ -28,8 +28,16 @@ export function useFoodItems() {
   function deleteFoodItem(foodItemToDelete: FoodItem): Promise<void> {
     if (foodItemToDelete !== undefined) {
       return database
-        .deleteFoodItem(foodItemToDelete)
+        .deleteFoodItem(foodItemToDelete.food_id)
         .then(refreshListOfFoodItems);
+    }
+    // otherwise:
+    return Promise.reject(Error('Could not delete an undefined foodItem'));
+  }
+
+  function deleteMeal(mealToDelete: Meal): Promise<void> {
+    if (mealToDelete !== undefined) {
+      return database.deleteMeal(mealToDelete.meal_id).then(refreshListOfMeals);
     }
     // otherwise:
     return Promise.reject(Error('Could not delete an undefined foodItem'));
@@ -46,5 +54,6 @@ export function useFoodItems() {
     addMeal,
     meals,
     setMeals,
+    deleteMeal,
   };
 }

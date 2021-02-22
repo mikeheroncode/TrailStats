@@ -18,9 +18,9 @@ import { RootStackParamList } from '../types/RootStackParamList';
 
 export const HomeScreen = (props: Props) => {
   const buttonTexts = [
-    { text: 'Record Event', route: 'RecordEvent' as keyof RootStackParamList },
     { text: 'View General Log', route: 'Log' as keyof RootStackParamList },
-    { text: 'Add New Item', route: 'EditItem' as keyof RootStackParamList },
+    { text: 'Record Event', route: 'RecordEvent' as keyof RootStackParamList },
+    { text: 'Record Food', route: 'EditItem' as keyof RootStackParamList },
     {
       text: 'Record Weight',
       route: 'RecordWeight' as keyof RootStackParamList,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   homeButton: {
     width: '75%',
     height: 70,
-    margin: 10,
+    margin: 9.65,
     backgroundColor: Colors.purple,
     alignItems: 'center',
     justifyContent: 'center',

@@ -6,6 +6,7 @@ import {
   Pressable,
   Switch,
   TextInput,
+  ToastAndroid,
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -28,6 +29,7 @@ export const RecordWeight = (props: Props) => {
   const [lastWeight, setlastWeight] = useState<number>(lastWeightEvent.weight);
   const recordWeightEvent = () => {
     addWeightEvent('Recorded Weight', lastWeight);
+    ToastAndroid.show('Recorded Weight', ToastAndroid.SHORT);
   };
   return (
     <View style={styles.homeScreen}>
@@ -55,7 +57,12 @@ export const RecordWeight = (props: Props) => {
         />
       </View>
       <Pressable
-        style={styles.saveSettingsButton}
+        style={({ pressed }) => [
+          {
+            backgroundColor: pressed ? 'rgb(210, 230, 255)' : Colors.blue,
+          },
+          styles.saveSettingsButton,
+        ]}
         onPress={() => {
           recordWeightEvent();
         }}>
@@ -96,7 +103,6 @@ const styles = StyleSheet.create({
   },
   saveSettingsButton: {
     width: '40%',
-    backgroundColor: Colors.blue,
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',

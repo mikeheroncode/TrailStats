@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, Pressable, Switch } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Pressable,
+  Switch,
+  ToastAndroid,
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors } from './Colors';
 import { useCampEvent } from '../hooks/useCampEvent';
@@ -40,6 +47,8 @@ export const RecordCampEvent = () => {
   const [pickerToUse, setPickerToUse] = useState<PickerToUse>(
     PickerToUse.MadeCampAt,
   );
+
+  const [currentCampId, setCurrentCampId] = useState(0);
 
   const [updateLastEvent, setUpdateLastEvent] = useState<boolean>(false);
 
@@ -87,6 +96,10 @@ export const RecordCampEvent = () => {
     setMode(modeForPicker);
   };
 
+  const showToast = (message: string) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  };
+
   const recordCampEvent = async () => {
     const lastCampEvent = await getLastCampEvent();
     console.log(JSON.stringify(lastCampEvent));
@@ -119,6 +132,7 @@ export const RecordCampEvent = () => {
         leftCampAt,
         description,
       );
+      showToast('New Camp Event');
     } else {
       updateCampEvent(
         lastCampEvent.campEvent_id,
@@ -130,17 +144,26 @@ export const RecordCampEvent = () => {
         leftCampAt,
         description,
       );
+      showToast('Updated Camp Event');
     }
+  };
+
+  const onSwitchUseLastCamp = async (newValue: boolean) => {
+    setUpdateLastEvent(newValue);
+    const lastCampEvent = await getLastCampEvent();
+    console.log(JSON.stringify(lastCampEvent));
+    setCurrentCampId(newValue ? lastCampEvent.campEvent_id : 0);
   };
 
   return (
     <View style={styles.homeScreen}>
+      <Text style={styles.eventId}>{currentCampId}</Text>
       <View style={styles.switchUIContainer}>
         <Text style={styles.labelText}>Use Last Camp</Text>
         <Switch
           trackColor={{ false: '#767577', true: '#81b0ff' }}
           thumbColor={updateLastEvent ? '#f5dd4b' : '#f4f3f4'}
-          onValueChange={setUpdateLastEvent}
+          onValueChange={onSwitchUseLastCamp}
           value={updateLastEvent}
           style={{ transform: [{ scaleX: 1.75 }, { scaleY: 1.5 }] }}
         />
@@ -169,10 +192,9 @@ export const RecordCampEvent = () => {
           onPress={() => {
             showDatetimePicker('time', campAtDate, PickerToUse.MadeCampAt);
           }}>
-          <Text
-            style={
-              styles.labelText
-            }>{`${campAtDate.getHours()}:${campAtDate.getMinutes()}`}</Text>
+          <Text style={styles.labelText}>{`${campAtDate.getHours()}:${
+            campAtDate.getMinutes() < 10 ? 0 : ''
+          }${campAtDate.getMinutes()}`}</Text>
         </Pressable>
       </View>
       <View
@@ -199,10 +221,9 @@ export const RecordCampEvent = () => {
           onPress={() => {
             showDatetimePicker('time', ateDinnerDate, PickerToUse.AteDinnerAt);
           }}>
-          <Text
-            style={
-              styles.labelText
-            }>{`${ateDinnerDate.getHours()}:${ateDinnerDate.getMinutes()}`}</Text>
+          <Text style={styles.labelText}>{`${ateDinnerDate.getHours()}:${
+            ateDinnerDate.getMinutes() < 10 ? 0 : ''
+          }${ateDinnerDate.getMinutes()}`}</Text>
         </Pressable>
       </View>
       <View
@@ -237,10 +258,9 @@ export const RecordCampEvent = () => {
               PickerToUse.WentToSleepAt,
             );
           }}>
-          <Text
-            style={
-              styles.labelText
-            }>{`${wentToSleepDate.getHours()}:${wentToSleepDate.getMinutes()}`}</Text>
+          <Text style={styles.labelText}>{`${wentToSleepDate.getHours()}:${
+            wentToSleepDate.getMinutes() < 10 ? 0 : ''
+          }${wentToSleepDate.getMinutes()}`}</Text>
         </Pressable>
       </View>
       <View
@@ -267,10 +287,9 @@ export const RecordCampEvent = () => {
           onPress={() => {
             showDatetimePicker('time', alarmForDate, PickerToUse.SetAlarmFor);
           }}>
-          <Text
-            style={
-              styles.labelText
-            }>{`${alarmForDate.getHours()}:${alarmForDate.getMinutes()}`}</Text>
+          <Text style={styles.labelText}>{`${alarmForDate.getHours()}:${
+            alarmForDate.getMinutes() < 10 ? 0 : ''
+          }${alarmForDate.getMinutes()}`}</Text>
         </Pressable>
       </View>
       <View
@@ -297,10 +316,9 @@ export const RecordCampEvent = () => {
           onPress={() => {
             showDatetimePicker('time', gotUpDate, PickerToUse.GotUpAt);
           }}>
-          <Text
-            style={
-              styles.labelText
-            }>{`${gotUpDate.getHours()}:${gotUpDate.getMinutes()}`}</Text>
+          <Text style={styles.labelText}>{`${gotUpDate.getHours()}:${
+            gotUpDate.getMinutes() < 10 ? 0 : ''
+          }${gotUpDate.getMinutes()}`}</Text>
         </Pressable>
       </View>
       <View
@@ -327,10 +345,9 @@ export const RecordCampEvent = () => {
           onPress={() => {
             showDatetimePicker('time', leftCampDate, PickerToUse.LeftCampAt);
           }}>
-          <Text
-            style={
-              styles.labelText
-            }>{`${leftCampDate.getHours()}:${leftCampDate.getMinutes()}`}</Text>
+          <Text style={styles.labelText}>{`${leftCampDate.getHours()}:${
+            leftCampDate.getMinutes() < 10 ? 0 : ''
+          }${leftCampDate.getMinutes()}`}</Text>
         </Pressable>
       </View>
       <Pressable
@@ -400,6 +417,12 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 25,
     marginRight: 25,
+  },
+  eventId: {
+    color: Colors.white,
+    fontSize: 15,
+    marginLeft: 20,
+    alignSelf: 'flex-start',
   },
   selectedLabelText: {
     color: Colors.blue,

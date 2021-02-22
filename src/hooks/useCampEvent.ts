@@ -27,11 +27,10 @@ export function useCampEvent() {
 
   const database = useDatabase();
 
-  function getLastCampEvent(): Promise<CampEvent> {
-    database.getLastCampEvent().then(setLastCampEvent);
-    console.log(lastCampEvent);
-
-    return Promise.resolve(lastCampEvent);
+  async function getLastCampEvent(): Promise<CampEvent> {
+    const campEvent = await database.getLastCampEvent();
+    setLastCampEvent(campEvent);
+    return Promise.resolve(campEvent);
   }
 
   function updateLastCampEvent(): Promise<void> {
@@ -63,7 +62,7 @@ export function useCampEvent() {
       .then((primaryKey) => {
         addCurrentLocation(primaryKey, EventTable.camp);
       })
-      .then(updateLastCampEvent);
+      .then(() => updateLastCampEvent());
   }
 
   async function updateCampEvent(

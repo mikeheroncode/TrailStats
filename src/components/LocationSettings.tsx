@@ -13,6 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useDatabase } from '../context/DatabaseContext';
 import Geolocation from 'react-native-geolocation-service';
 import Slider from '@react-native-community/slider';
+
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -27,7 +28,13 @@ import { RootStackParamList } from '../types/RootStackParamList';
 import { useLocation } from '../hooks/useLocation';
 
 export const LocationSettings = (props: Props) => {
-  const { locationSettings, setLocationSettings, addTest } = useLocation();
+  const database = useDatabase();
+
+  const {
+    locationSettings,
+    setLocationSettings,
+    updateDefaultLocationSettings,
+  } = useLocation();
   const [includeLocationEnabled, setIncludeLocationEnabled] = useState(
     locationSettings.includeLocation,
   );
@@ -41,16 +48,6 @@ export const LocationSettings = (props: Props) => {
 
   const [eventName, setEventName] = useState<string>('');
 
-  const locationTest = () => {
-    console.log(`LOCATION SETTINGS: ${JSON.stringify(locationSettings)}`);
-    addTest(eventName);
-    ToastAndroid.show('FINISHED LOCATIONTEST', ToastAndroid.SHORT);
-  };
-  /*
-    setLocationSettings({
-              ...locationSettings,
-              maxTimeout: newValue,
-            });*/
   return (
     <View style={styles.homeScreen}>
       <View style={styles.switchUIContainer}>
@@ -113,7 +110,7 @@ export const LocationSettings = (props: Props) => {
         />
       </View>
       <Pressable style={styles.saveSettingsButton} onPress={() => {}}>
-        <Text style={styles.labelText}>Create</Text>
+        <Text style={styles.labelText}>Update</Text>
       </Pressable>
     </View>
   );

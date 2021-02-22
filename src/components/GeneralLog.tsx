@@ -3,19 +3,10 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Colors } from './Colors';
 import { useEventLog } from '../hooks/useEventLog';
-import { FoodEventTile } from './FoodEventTile';
 import { UnifiedEventLogItemTile } from './UnifiedEventLogItemTile';
 
 export const GeneralLog = (props: Props) => {
-  const {
-    foodEvents,
-    setFoodEvents,
-    refreshListOfEvents,
-    deleteFoodEvent,
-    getAllEventsFromLog,
-    eventLogItems,
-    deleteEvent,
-  } = useEventLog();
+  const { getAllEventsFromLog, eventLogItems, deleteEvent } = useEventLog();
 
   return (
     <View style={styles.container}>

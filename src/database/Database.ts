@@ -13,10 +13,11 @@ import { CampEvent, defaultCampEvent } from '../types/CampEvent';
 import { UnifiedEventLogItem } from '../types/UnifiedEventLogItem';
 
 export interface Database {
-  // Create
+  close(): Promise<void>;
   addMeal(name: string, ingredients: number[]): Promise<void>;
   addFoodItem(foodItem: PendingFoodItem): Promise<void>;
-  deleteFoodItem(foodItem: FoodItem): Promise<void>;
+  deleteFoodItem(foodItem_id: number): Promise<void>;
+  deleteMeal(meal_id: number): Promise<void>;
   logEvent(eventName: string): Promise<number>;
   startEvent(
     eventName: string,
@@ -58,8 +59,6 @@ export interface Database {
   //getFoodItemsFromMeal(meal: Meal): Promise<FoodItem[]>;
   // Update
   updateFoodItem(foodItem: FoodItem): Promise<void>;
-  // Delete
-  deleteMeal(meal: Meal): Promise<void>;
   getDefaultLocationSettings(): Promise<LocationSettings>;
   updateDefaultLocationSettings(
     newLocationSettings: LocationSettings,
@@ -178,7 +177,7 @@ async function logEvent(eventName: string): Promise<number> {
   return getDatabase()
     .then((db) =>
       db.executeSql(
-        'INSERT INTO EventLog (name, start_timestamp, end_timestamp) VALUES (?, ?, ?);',
+        'INSERT INTO EventLog (name, start_timestamp, end_timestamp, isSingleEvent) VALUES (?, ?, ?, 1);',
         [eventName, +insertTime, +insertTime],
       ),
     )
@@ -199,7 +198,7 @@ async function startEvent(
     .then((db) =>
       db.executeSql(
         'INSERT INTO EventLog (name, start_timestamp, isSingleEvent) VALUES (?, ?, ?);',
-        [eventName, startTime, isSingleEvent],
+        [eventName, startTime, isSingleEvent ? 1 : 0],
       ),
     )
     .then(([results]) => {
@@ -433,22 +432,22 @@ async function addFoodItem(foodItem: PendingFoodItem): Promise<void> {
     });
 }
 
-async function deleteFoodItem(foodItem: FoodItem): Promise<void> {
-  console.log(
-    `[db] Deleting foodItem: "${foodItem.name}" with id: ${foodItem.id}`,
-  );
+async function deleteFoodItem(foodItem_id: number): Promise<void> {
   return getDatabase()
     .then((db) => {
-      return db
-        .executeSql('DELETE FROM FoodItem WHERE food_id = ?;', [foodItem.id])
-        .then(() => db);
+      return db.executeSql('DELETE FROM FoodItem WHERE food_id = ?;', [
+        foodItem_id,
+      ]);
     })
-    .then((db) =>
-      db.executeSql('DELETE FROM FoodItem WHERE food_id = ?;', [foodItem.id]),
-    )
-    .then(() => {
-      console.log(`[db] Deleted foodItem: "${foodItem.name}"!`);
-    });
+    .then(() => {});
+}
+
+async function deleteMeal(meal_id: number): Promise<void> {
+  return getDatabase()
+    .then((db) => {
+      return db.executeSql('DELETE FROM Meal WHERE meal_id = ?;', [meal_id]);
+    })
+    .then(() => {});
 }
 
 async function updateFoodItem(foodItem: FoodItem): Promise<void> {
@@ -462,23 +461,6 @@ async function updateFoodItem(foodItem: FoodItem): Promise<void> {
     .then(([results]) => {
       console.log(`[db] Food item with id: ${foodItem.id} updated.`);
       console.log(results);
-    });
-}
-
-async function deleteMeal(meal: Meal): Promise<void> {
-  console.log(`[db] Deleting food titled: "${meal.name}" with id: ${meal.id}`);
-  return getDatabase()
-    .then((db) => {
-      // Delete food items first, then delete the food itself
-      return db
-        .executeSql('DELETE FROM FoodItem WHERE food_id = ?;', [meal.id])
-        .then(() => db);
-    })
-    .then((db) =>
-      db.executeSql('DELETE FROM Food WHERE food_id = ?;', [meal.id]),
-    )
-    .then(() => {
-      console.log(`[db] Deleted food titled: "${meal.name}"!`);
     });
 }
 
@@ -1088,7 +1070,7 @@ async function getLastCampEvent(): Promise<CampEvent> {
     )
     .then(([results]) => {
       if (results === undefined) {
-        return {} as CampEvent;
+        return defaultCampEvent;
       }
       const row = results.rows.item(0);
       if (row === undefined) {
@@ -1320,7 +1302,7 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
 
   const db = await SQLite.openDatabase(
     {
-      name: 'test',
+      name: 'test.db',
       location: 'default',
       createFromLocation: '~www/data/test.db',
     },
@@ -1401,4 +1383,5 @@ export const sqliteDatabase: Database = {
   deleteEventFromLog,
   deleteEntityEventFromLog,
   addMealEvent,
+  close,
 };

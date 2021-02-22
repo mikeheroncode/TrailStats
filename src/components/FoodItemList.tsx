@@ -29,7 +29,7 @@ type Props = {
 };
 
 export const FoodItemList = ({ route, navigation }: Props) => {
-  const { foodItems, addMeal } = useFoodItems();
+  const { foodItems, addMeal, deleteFoodItem } = useFoodItems();
   const { logFoodEvent } = useFoodEvent();
   const [selectedFoodItems, setSelectedFoodItems] = useState<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -95,7 +95,11 @@ export const FoodItemList = ({ route, navigation }: Props) => {
                   )
                 : setSelectedFoodItems([...selectedFoodItems, item.food_id])
             }
-            onLongPress={() => onFoodItemLongPress(item)}
+            onLongPress={() =>
+              selectedFoodItems.includes(item.food_id)
+                ? deleteFoodItem(item)
+                : onFoodItemLongPress(item)
+            }
             style={({ pressed }) => [
               {
                 backgroundColor: pressed
